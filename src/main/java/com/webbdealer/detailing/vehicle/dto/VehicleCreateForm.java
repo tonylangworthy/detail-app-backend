@@ -1,6 +1,11 @@
 package com.webbdealer.detailing.vehicle.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import java.io.Serializable;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Objects;
 
 public class VehicleCreateForm implements Serializable {
@@ -13,9 +18,11 @@ public class VehicleCreateForm implements Serializable {
 
     private String color;
 
-    private String arrivalDate;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "MM/dd/yyyy")
+    private LocalDate arrivalDate;
 
-    private String arrivalTime;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "hh:mm a")
+    private LocalTime arrivalTime;
 
     public Long getId() {
         return id;
@@ -49,19 +56,19 @@ public class VehicleCreateForm implements Serializable {
         this.color = color;
     }
 
-    public String getArrivalDate() {
+    public LocalDate getArrivalDate() {
         return arrivalDate;
     }
 
-    public void setArrivalDate(String arrivalDate) {
+    public void setArrivalDate(LocalDate arrivalDate) {
         this.arrivalDate = arrivalDate;
     }
 
-    public String getArrivalTime() {
+    public LocalTime getArrivalTime() {
         return arrivalTime;
     }
 
-    public void setArrivalTime(String arrivalTime) {
+    public void setArrivalTime(LocalTime arrivalTime) {
         this.arrivalTime = arrivalTime;
     }
 

@@ -22,7 +22,7 @@ public interface JobService {
 
     Job storeJobFromRequest(Long companyId, JobCreateForm jobCreateForm);
 
-    Job storeJob(Long companyId, Job job);
+    Job storeJob(Long companyId, JobCreateForm jobCreateForm);
 
     JobStatus jobStatus(Job job);
 

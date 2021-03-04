@@ -23,11 +23,13 @@ public class JobCreateForm implements Serializable {
 
     private VehicleCreateForm vehicle;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "MM/dd/yyyy h:mm a")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "MM/dd/yyyy hh:mm a")
     private LocalDateTime jobStartedAt;
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "MM/dd/yyyy hh:mm a")
     private LocalDateTime jobPausedAt;
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "MM/dd/yyyy hh:mm a")
     private LocalDateTime jobEndedAt;
 
     private boolean jobEnded;

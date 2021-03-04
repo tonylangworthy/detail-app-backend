@@ -114,7 +114,17 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public Job storeJob(Long companyId, Job job) {
+    public Job storeJob(Long companyId, JobCreateForm jobCreateForm) {
+
+        Job job = new Job();
+
+        // This can only be created by a manager
+        // 1. Store vehicle
+
+        // 2. Store customer, if customer doesn't exist
+        // otherwise attach customer to this job
+
+        // 3. Attach services to this job
 
         Company company = companyService.attachJobToCompany(job, companyId);
 
