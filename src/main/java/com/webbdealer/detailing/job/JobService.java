@@ -12,6 +12,8 @@ public interface JobService {
 
     Job fetchById(Long id);
 
+    Job fetchByIdReference(Long id);
+
     List<JobResponse> fetchAllJobs(Long companyId);
 
     List<JobResponse> fetchPendingJobs(Long companyId);
@@ -22,7 +24,7 @@ public interface JobService {
 
     Job storeJobFromRequest(Long companyId, JobCreateForm jobCreateForm);
 
-    Job storeJob(Long companyId, JobCreateForm jobCreateForm);
+    Job storeJob(Long companyId, Job job);
 
     JobStatus jobStatus(Job job);
 

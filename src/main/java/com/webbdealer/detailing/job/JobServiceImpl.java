@@ -4,6 +4,7 @@ import com.webbdealer.detailing.company.CompanyService;
 import com.webbdealer.detailing.company.dao.Company;
 import com.webbdealer.detailing.customer.CustomerService;
 import com.webbdealer.detailing.customer.dao.Customer;
+import com.webbdealer.detailing.customer.dto.CustomerCreateForm;
 import com.webbdealer.detailing.customer.dto.CustomerResponse;
 import com.webbdealer.detailing.employee.EmployeeService;
 import com.webbdealer.detailing.employee.dao.User;
@@ -19,6 +20,7 @@ import com.webbdealer.detailing.recondition.dto.ReconditionCreateForm;
 import com.webbdealer.detailing.recondition.dto.ReconditionServiceResponse;
 import com.webbdealer.detailing.vehicle.VehicleService;
 import com.webbdealer.detailing.vehicle.dao.Vehicle;
+import com.webbdealer.detailing.vehicle.dto.VehicleCreateForm;
 import com.webbdealer.detailing.vehicle.dto.VehicleResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -72,6 +74,11 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
+    public Job fetchByIdReference(Long id) {
+        return jobRepository.getOne(id);
+    }
+
+    @Override
     @Transactional
     public List<JobResponse> fetchAllJobs(Long companyId) {
 
@@ -98,10 +105,24 @@ public class JobServiceImpl implements JobService {
     @Transactional
     public Job storeJobFromRequest(Long companyId, JobCreateForm jobCreateForm) {
 
+        Job job = new Job();
+
+        // This can only be created by a manager
+        // 1. Store vehicle
         Vehicle vehicle = vehicleService.storeVehicleFromRequest(companyId, jobCreateForm.getVehicle());
+
+        // 2. Store customer, if customer doesn't exist
         Customer customer = customerService.storeCustomerFromRequest(companyId, jobCreateForm.getCustomer());
 
-        Job job = new Job();
+        // otherwise attach customer to this job
+        // If customerId == null, then create a new customer
+
+        // 3. Attach services to this job
+
+        Company company = companyService.attachJobToCompany(job, companyId);
+
+
+
         job.setVehicle(vehicle);
         job.setCustomer(customer);
 //        job.setJobStartedAt(LocalDateTime.now());
@@ -114,19 +135,9 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public Job storeJob(Long companyId, JobCreateForm jobCreateForm) {
+    public Job storeJob(Long companyId, Job job) {
 
-        Job job = new Job();
-
-        // This can only be created by a manager
-        // 1. Store vehicle
-
-        // 2. Store customer, if customer doesn't exist
-        // otherwise attach customer to this job
-
-        // 3. Attach services to this job
-
-        Company company = companyService.attachJobToCompany(job, companyId);
+        Company company = companyService.fetchByIdReference(companyId);
 
         job.setCompany(company);
         return jobRepository.save(job);

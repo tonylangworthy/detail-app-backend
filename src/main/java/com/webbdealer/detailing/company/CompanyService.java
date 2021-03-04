@@ -16,6 +16,8 @@ public interface CompanyService {
 
     Optional<Company> fetchById(Long id);
 
+    Company fetchByIdReference(Long id);
+
     Company attachCustomerToCompany(Customer customer, Long companyId);
 
     Company attachVehicleToCompany(Vehicle vehicle, Long companyId);

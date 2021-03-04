@@ -48,6 +48,11 @@ public class CompanyServiceImpl implements CompanyService {
     }
 
     @Override
+    public Company fetchByIdReference(Long id) {
+        return companyRepository.getOne(id);
+    }
+
+    @Override
     public Company attachCustomerToCompany(Customer customer, Long companyId) {
         Company company = companyRepository.getOne(companyId);
         customer.setCompany(company);
