@@ -21,27 +21,6 @@ public class VehicleStorageServiceImpl implements VehicleStorageService {
 		vehicle.setVin(apiResponse.getVin());
 		vehicle.setYear(apiResponse.getYear());
 
-		Make make = findOrCreateMake(apiResponse.getMake());
-		vehicle.setMake(make);
-
-		Model model = findOrCreateModel(apiResponse.getModel());
-		vehicle.setModel(model);
-
 		return vehicleRepository.save(vehicle);
-	}
-
-	@Override
-	public Make findOrCreateMake(String makeName) {
-		return null;
-	}
-
-	@Override
-	public Model findOrCreateModel(String modelName) {
-		return null;
-	}
-
-	@Override
-	public Trim findOrCreateTrim(String trimName) {
-		return null;
 	}
 }

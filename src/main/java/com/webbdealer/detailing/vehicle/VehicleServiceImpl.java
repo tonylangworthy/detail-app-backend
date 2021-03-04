@@ -26,28 +26,16 @@ public class VehicleServiceImpl implements VehicleService{
 
     private VehicleRepository vehicleRepository;
 
-    private MakeRepository makeRepository;
-
-    private ModelRepository modelRepository;
-
-    private TrimRepository trimRepository;
-
     private CompanyService companyService;
 
     @Autowired
     public VehicleServiceImpl(VehicleLookupService lookupService, 
     		VehicleStorageService storageService, 
     		VehicleRepository vehicleRepository,
-            MakeRepository makeRepository,
-            ModelRepository modelRepository,
-            TrimRepository trimRepository,
             CompanyService companyService) {
         this.lookupService = lookupService;
         this.storageService = storageService;
         this.vehicleRepository = vehicleRepository;
-        this.makeRepository = makeRepository;
-        this.modelRepository = modelRepository;
-        this.trimRepository = trimRepository;
         this.companyService = companyService;
     }
 
@@ -81,9 +69,9 @@ public class VehicleServiceImpl implements VehicleService{
         response.setId(vehicle.getId());
         response.setVin(vehicle.getVin());
         response.setYear(vehicle.getYear());
-        response.setMake(vehicle.getMake().getName());
-        response.setModel(vehicle.getModel().getName());
-        response.setTrim(vehicle.getTrim().getName());
+//        response.setMake(vehicle.getMake().getName());
+//        response.setModel(vehicle.getModel().getName());
+//        response.setTrim(vehicle.getTrim().getName());
 
         return response;
     }
@@ -99,21 +87,9 @@ public class VehicleServiceImpl implements VehicleService{
 
         logger.info(vehicleCreateForm.toString());
 
-        Optional<Make> optionalMake = makeRepository.findByNameIgnoreCase(vehicleCreateForm.getMake());
-        Make make = optionalMake.orElseGet(() -> makeRepository.save(new Make(vehicleCreateForm.getMake())));
-
-        Optional<Model> optionalModel = modelRepository.findByNameIgnoreCase(vehicleCreateForm.getModel());
-        Model model = optionalModel.orElseGet(() -> modelRepository.save(new Model(vehicleCreateForm.getModel())));
-
-        Optional<Trim> optionalTrim = trimRepository.findByNameIgnoreCase(vehicleCreateForm.getTrim());
-        Trim trim = optionalTrim.orElseGet(() -> trimRepository.save(new Trim(vehicleCreateForm.getTrim())));
-
         Vehicle vehicle = new Vehicle();
+        vehicle.setCatalogId(vehicleCreateForm.getCatalogId());
         vehicle.setVin(vehicleCreateForm.getVin());
-        vehicle.setYear(vehicleCreateForm.getYear());
-        vehicle.setMake(make);
-        vehicle.setModel(model);
-        vehicle.setTrim(trim);
 
         String arrivalDate = vehicleCreateForm.getArrivalDate();
         String arrivalTime = vehicleCreateForm.getArrivalTime();
@@ -144,9 +120,9 @@ public class VehicleServiceImpl implements VehicleService{
         vehicleResponse.setId(vehicle.getId());
         vehicleResponse.setVin(vehicle.getVin());
         vehicleResponse.setYear(vehicle.getYear());
-        vehicleResponse.setMake(vehicle.getMake().getName());
-        vehicleResponse.setModel(vehicle.getModel().getName());
-        vehicleResponse.setTrim(vehicle.getTrim().getName());
+//        vehicleResponse.setMake(vehicle.getMake().getName());
+//        vehicleResponse.setModel(vehicle.getModel().getName());
+//        vehicleResponse.setTrim(vehicle.getTrim().getName());
         vehicleResponse.setCreatedAt(vehicle.getCreatedAt().toString());
 //        vehicleResponse.setUpdatedAt(vehicle.getUpdatedAt().toString());
         return vehicleResponse;

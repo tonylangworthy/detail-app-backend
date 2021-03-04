@@ -9,13 +9,7 @@ public class VehicleCreateForm implements Serializable {
 
     private String vin;
 
-    private String year;
-
-    private String make;
-
-    private String model;
-
-    private String trim;
+    private Long catalogId;
 
     private String color;
 
@@ -39,36 +33,12 @@ public class VehicleCreateForm implements Serializable {
         this.vin = vin;
     }
 
-    public String getYear() {
-        return year;
+    public Long getCatalogId() {
+        return catalogId;
     }
 
-    public void setYear(String year) {
-        this.year = year;
-    }
-
-    public String getMake() {
-        return make;
-    }
-
-    public void setMake(String make) {
-        this.make = make;
-    }
-
-    public String getModel() {
-        return model;
-    }
-
-    public void setModel(String model) {
-        this.model = model;
-    }
-
-    public String getTrim() {
-        return trim;
-    }
-
-    public void setTrim(String trim) {
-        this.trim = trim;
+    public void setCatalogId(Long catalogId) {
+        this.catalogId = catalogId;
     }
 
     public String getColor() {
@@ -98,14 +68,19 @@ public class VehicleCreateForm implements Serializable {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (!(o instanceof VehicleCreateForm)) return false;
         VehicleCreateForm that = (VehicleCreateForm) o;
-        return Objects.equals(id, that.id) && Objects.equals(vin, that.vin) && Objects.equals(year, that.year) && Objects.equals(make, that.make) && Objects.equals(model, that.model) && Objects.equals(trim, that.trim) && Objects.equals(color, that.color) && Objects.equals(arrivalDate, that.arrivalDate) && Objects.equals(arrivalTime, that.arrivalTime);
+        return Objects.equals(id, that.id) &&
+                Objects.equals(vin, that.vin) &&
+                Objects.equals(catalogId, that.catalogId) &&
+                Objects.equals(color, that.color) &&
+                Objects.equals(arrivalDate, that.arrivalDate) &&
+                Objects.equals(arrivalTime, that.arrivalTime);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, vin, year, make, model, trim, color, arrivalDate, arrivalTime);
+        return Objects.hash(id, vin, catalogId, color, arrivalDate, arrivalTime);
     }
 
     @Override
@@ -113,10 +88,7 @@ public class VehicleCreateForm implements Serializable {
         return "VehicleCreateForm{" +
                 "id=" + id +
                 ", vin='" + vin + '\'' +
-                ", year='" + year + '\'' +
-                ", make='" + make + '\'' +
-                ", model='" + model + '\'' +
-                ", trim='" + trim + '\'' +
+                ", catalogId=" + catalogId +
                 ", color='" + color + '\'' +
                 ", arrivalDate='" + arrivalDate + '\'' +
                 ", arrivalTime='" + arrivalTime + '\'' +
