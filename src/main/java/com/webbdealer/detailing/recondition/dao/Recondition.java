@@ -9,6 +9,7 @@ import com.webbdealer.detailing.shared.BaseEntity;
 import javax.persistence.*;
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -32,7 +33,7 @@ public class Recondition extends BaseEntity implements Serializable {
 
     @ManyToMany(mappedBy = "reconditioningServices")
     @JsonIgnore
-    private List<Job> jobs;
+    private List<Job> jobs = new ArrayList<>();
 
     public String getName() {
         return name;
@@ -64,6 +65,14 @@ public class Recondition extends BaseEntity implements Serializable {
 
     public void setCompany(Company company) {
         this.company = company;
+    }
+
+    public List<Job> getJobs() {
+        return jobs;
+    }
+
+    public void setJobs(List<Job> jobs) {
+        this.jobs = jobs;
     }
 
     @Override

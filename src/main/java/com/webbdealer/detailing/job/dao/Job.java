@@ -11,6 +11,7 @@ import com.webbdealer.detailing.vehicle.dao.Vehicle;
 import javax.persistence.*;
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -30,12 +31,10 @@ public class Job extends BaseEntity implements Serializable {
     @Column(name = "job_canceled")
     private boolean jobCanceled;
 
-    @Lob
-    @Column(name = "manager_notes")
+    @Column(name = "manager_notes", columnDefinition = "TEXT")
     private String managerNotes;
 
-    @Lob
-    @Column(name = "employee_notes")
+    @Column(name = "employee_notes", columnDefinition = "TEXT")
     private String employeeNotes;
 
     @ManyToOne
@@ -74,7 +73,7 @@ public class Job extends BaseEntity implements Serializable {
             name = "reconservices_jobs",
             joinColumns = @JoinColumn(name = "reconservices_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "job_id", referencedColumnName = "id"))
-    private List<Recondition> reconditioningServices;
+    private List<Recondition> reconditioningServices = new ArrayList<>();
 
     public LocalDateTime getJobStartedAt() {
         return jobStartedAt;

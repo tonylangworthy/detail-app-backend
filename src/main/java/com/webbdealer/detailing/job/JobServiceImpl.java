@@ -110,23 +110,38 @@ public class JobServiceImpl implements JobService {
         // This can only be created by a manager
         // 1. Store vehicle
         Vehicle vehicle = vehicleService.storeVehicleFromRequest(companyId, jobCreateForm.getVehicle());
+        job.setVehicle(vehicle);
 
         // 2. Store customer, if customer doesn't exist
-        Customer customer = customerService.storeCustomerFromRequest(companyId, jobCreateForm.getCustomer());
-
         // otherwise attach customer to this job
         // If customerId == null, then create a new customer
+        CustomerCreateForm customerForm = jobCreateForm.getCustomer();
+        Long customerId = customerForm.getId();
+
+        Customer customer;
+        if(customerId == null) {
+            customer = customerService.storeCustomerFromRequest(companyId, customerForm);
+        }
+        else {
+            customer = customerService.fetchByIdReference(customerId);
+        }
+        job.setCustomer(customer);
 
         // 3. Attach services to this job
+        List<Long> serviceIdsList = jobCreateForm.getServiceIds();
+        serviceIdsList.forEach(id -> {
+            Recondition recondition = reconditionService.fetchByIdReference(id);
+            recondition.getJobs().add(job);
+        });
 
         Company company = companyService.attachJobToCompany(job, companyId);
 
 
 
-        job.setVehicle(vehicle);
-        job.setCustomer(customer);
 //        job.setJobStartedAt(LocalDateTime.now());
-        job.setManagerNotes(jobCreateForm.getManagerNotes());
+        String managerNotes = jobCreateForm.getManagerNotes();
+        logger.info(managerNotes);
+        job.setManagerNotes(managerNotes);
 
         reconditionService.attachReconServicesToJob(jobCreateForm.getServiceIds(), job);
         companyService.attachJobToCompany(job, companyId);

@@ -42,6 +42,11 @@ public class ReconditionServiceImpl implements ReconditionService {
     }
 
     @Override
+    public Recondition fetchByIdReference(Long id) {
+        return reconditionRepository.getOne(id);
+    }
+
+    @Override
     public Job attachReconServicesToJob(List<Long> serviceIds, Job job) {
         List<Recondition> reconditionList = new ArrayList<>();
 

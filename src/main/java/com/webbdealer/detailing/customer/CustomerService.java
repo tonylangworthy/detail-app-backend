@@ -5,7 +5,13 @@ import com.webbdealer.detailing.customer.dto.CustomerCreateForm;
 import com.webbdealer.detailing.customer.dto.CustomerResponse;
 import com.webbdealer.detailing.job.dao.Job;
 
+import java.util.Optional;
+
 public interface CustomerService {
+
+    Optional<Customer> fetchById(Long id);
+
+    Customer fetchByIdReference(Long id);
 
     Customer attachCustomerToJob(Long customerId, Job job);
 

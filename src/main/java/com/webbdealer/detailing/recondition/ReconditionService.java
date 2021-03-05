@@ -14,6 +14,8 @@ public interface ReconditionService {
 
     Optional<Recondition> fetchById(Long id);
 
+    Recondition fetchByIdReference(Long id);
+
     Job attachReconServicesToJob(List<Long> serviceIds, Job job);
 
     List<Recondition> fetchServices(Long companyId);

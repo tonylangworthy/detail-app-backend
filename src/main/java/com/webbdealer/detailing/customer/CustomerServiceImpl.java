@@ -11,6 +11,8 @@ import com.webbdealer.detailing.job.dao.Job;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 public class CustomerServiceImpl implements CustomerService {
 
@@ -23,6 +25,16 @@ public class CustomerServiceImpl implements CustomerService {
                                CompanyService companyService) {
         this.customerRepository = customerRepository;
         this.companyService = companyService;
+    }
+
+    @Override
+    public Optional<Customer> fetchById(Long id) {
+        return customerRepository.findById(id);
+    }
+
+    @Override
+    public Customer fetchByIdReference(Long id) {
+        return customerRepository.getOne(id);
     }
 
     @Override
@@ -44,6 +56,7 @@ public class CustomerServiceImpl implements CustomerService {
         customer.setEmail(customerCreateForm.getEmail());
         customer.setPhone(customerCreateForm.getPhone());
         customer.setReceiveTexts(customerCreateForm.isReceiveTexts());
+        customer.setNotes(customerCreateForm.getNotes());
         return storeCustomer(companyId, customer);
     }
 

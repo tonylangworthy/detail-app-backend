@@ -18,6 +18,7 @@ public class BaseEntity {
     @Column(name = "updated_at", columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private LocalDateTime updatedAt;
 
+    @Column(columnDefinition = "boolean default false")
     private boolean deleted;
 
     @PrePersist

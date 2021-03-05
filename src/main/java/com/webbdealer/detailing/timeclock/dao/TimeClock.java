@@ -19,18 +19,18 @@ public class TimeClock {
     @Column(name = "clocked_at", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
     private LocalDateTime clockedAt;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "clocked_reason_id", nullable = false)
     private ClockedReason clockedReason;
 
     @Column(name = "employee_note")
     private String employeeNote;
 
+    @Enumerated
     @Column(name = "clocked_status", columnDefinition = "smallint")
-    @Enumerated(EnumType.ORDINAL)
     private ClockedStatus clockedStatus;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
