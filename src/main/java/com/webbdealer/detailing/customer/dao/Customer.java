@@ -33,8 +33,7 @@ public class Customer extends BaseEntity implements Serializable {
     @Column(name = "business")
     private String business;
 
-    @Lob
-    @Column(name = "notes")
+    @Column(name = "notes", columnDefinition = "TEXT")
     private String notes;
 
     @Enumerated(EnumType.STRING)
