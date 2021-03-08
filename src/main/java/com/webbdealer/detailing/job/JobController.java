@@ -14,6 +14,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.util.ArrayList;
 import java.util.List;
 
 @RestController
@@ -46,14 +47,29 @@ public class JobController {
     }
 
     @GetMapping("")
-    public ResponseEntity<?> listAllJobs() {
+    public ResponseEntity<?> listJobs(@RequestParam(required = false) String status) {
 
         SecurityContext context = SecurityContextHolder.getContext();
         Authentication auth = context.getAuthentication();
 
         JwtClaim userDetails = (JwtClaim) auth.getPrincipal();
 
-        List<JobResponse> jobs = jobService.fetchAllJobs(userDetails.getCompanyId());
+        List<JobResponse> jobs;
+
+        if(status == null) {
+            jobs = jobService.fetchAllJobs(userDetails.getCompanyId());
+            return ResponseEntity.ok(jobs);
+        }
+        switch (status) {
+            case "pending":
+                jobs = jobService.fetchPendingJobs(userDetails.getCompanyId());
+            case "active":
+                jobs = jobService.fetchActiveJobs(userDetails.getCompanyId());
+            case "completed":
+                jobs = jobService.fetchCompletedJobs(userDetails.getCompanyId());
+            default:
+                jobs = new ArrayList<>();
+        }
 
         logger.info(jobs.toString());
 

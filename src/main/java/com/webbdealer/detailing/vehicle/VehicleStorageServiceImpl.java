@@ -15,11 +15,11 @@ public class VehicleStorageServiceImpl implements VehicleStorageService {
 	}
 
 	@Override
-	public Vehicle storeVehicleFromApiResponse(CatalogApiResponse apiResponse) {
+	public Vehicle storeVehicleFromApiResponse(CatalogVehicleResponse apiResponse) {
 		
 		Vehicle vehicle = new Vehicle();
-		vehicle.setVin(apiResponse.getVin());
-		vehicle.setYear(apiResponse.getYear());
+//		vehicle.setVin(apiResponse.getVin());
+		vehicle.setCatalogId(Long.parseLong(apiResponse.getVehicleId()));
 
 		return vehicleRepository.save(vehicle);
 	}

@@ -4,5 +4,5 @@ import com.webbdealer.detailing.vehicle.dao.*;
 
 public interface VehicleStorageService {
 
-	Vehicle storeVehicleFromApiResponse(CatalogApiResponse apiResponse);
+	Vehicle storeVehicleFromApiResponse(CatalogVehicleResponse apiResponse);
 }

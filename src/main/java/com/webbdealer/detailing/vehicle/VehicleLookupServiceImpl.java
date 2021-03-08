@@ -12,16 +12,31 @@ import org.springframework.web.util.UriComponents;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
-import java.util.Map;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class VehicleLookupServiceImpl implements VehicleLookupService {
 
-    private static final String CATALOG_API_BASE_URL = "http://server3.webbdealer.com:8080/vehicle-catalog";
+    private static final String CATALOG_API_BASE_URL = "https://catalog.webbdealer.com";
     private static final Logger logger = LoggerFactory.getLogger(VehicleLookupServiceImpl.class);
 
     @Override
-    public CatalogApiResponse lookupByVin(String vin) throws ApiServiceException {
+    public ResponseEntity<CatalogVehicleResponse[]> lookupByCatalogIds(List<Long> idList) {
+
+        String commaSeparatedIdList = commaSeparatedIdList(idList);
+
+        final String uri = CATALOG_API_BASE_URL + "/vehicles/"+commaSeparatedIdList;
+
+        RestTemplate restTemplate = new RestTemplate();
+        CatalogVehicleResponse[] apiResponse = restTemplate.getForObject(uri, CatalogVehicleResponse[].class);
+
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @Override
+    public CatalogVehicleResponse lookupByVin(String vin) throws ApiServiceException {
 
         LinkedMultiValueMap<String, String> params = new LinkedMultiValueMap<String, String>();
         params.add("vin", vin);
@@ -33,9 +48,9 @@ public class VehicleLookupServiceImpl implements VehicleLookupService {
 
         MultiValueMap<String, String> postParams = new LinkedMultiValueMap<>();
         postParams.add("vin", vin);
-        ResponseEntity<CatalogApiResponse> responseEntity = callApiService(vin);
+        ResponseEntity<CatalogVehicleResponse> responseEntity = callApiService(vin);
 
-        CatalogApiResponse apiResponse = responseEntity.getBody();
+        CatalogVehicleResponse apiResponse = responseEntity.getBody();
 
         logger.info(apiResponse.toString());
 
@@ -46,22 +61,17 @@ public class VehicleLookupServiceImpl implements VehicleLookupService {
     }
 
     @Override
-    public CatalogApiResponse lookupByYearMakeModel(String year, String make, String model) {
+    public CatalogVehicleResponse lookupByYearMakeModel(String year, String make, String model) {
         return null;
     }
 
 	@Override
-	public CatalogApiResponse lookupByYearMakeModelTrim(String year, String make, String model, String trim) {
+	public CatalogVehicleResponse lookupByYearMakeModelTrim(String year, String make, String model, String trim) {
 
         return null;
 	}
 
-	@Override
-	public CatalogApiResponse lookupByApiId(String id) {
-        return null;
-    }
-
-    private ResponseEntity<CatalogApiResponse> callApiService(String vin) {
+    private ResponseEntity<CatalogVehicleResponse> callApiService(String vin) {
 //        RequestEntity<?> requestEntity = RequestEntity
 //                .post(CATALOG_API_BASE_URL + "/vehicles/vin", params)
 //                .accept(MediaType.APPLICATION_JSON)
@@ -73,9 +83,16 @@ public class VehicleLookupServiceImpl implements VehicleLookupService {
         VinFormRequest formRequest = new VinFormRequest();
         formRequest.setVin(vin);
         HttpEntity<VinFormRequest> request = new HttpEntity<>(formRequest, headers);
-        CatalogApiResponse response =
-                restTemplate.postForObject(CATALOG_API_BASE_URL + "/vehicles/vin", request, CatalogApiResponse.class);
+        CatalogVehicleResponse response =
+                restTemplate.postForObject(CATALOG_API_BASE_URL + "/vehicles/vin", request, CatalogVehicleResponse.class);
         return ResponseEntity.ok(response);
+    }
+
+    @Override
+    public String commaSeparatedIdList(List<Long> idList) {
+        return idList.stream()
+                .map(id -> id.toString())
+                .collect(Collectors.joining(","));
     }
 
 //    private VinAuditVehicleAdapter convertToApiVehicle(VinAuditVehicle vinAuditVehicle) {

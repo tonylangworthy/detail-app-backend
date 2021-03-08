@@ -5,13 +5,26 @@ import com.webbdealer.detailing.vehicle.dao.Vehicle;
 import com.webbdealer.detailing.vehicle.dto.VehicleCreateForm;
 import com.webbdealer.detailing.vehicle.dto.VehicleResponse;
 
+import java.util.List;
+import java.util.Optional;
+
 public interface VehicleService {
 
-    Vehicle findVehicleByVin(Long companyId, String vin);
+    Optional<Vehicle> fetchById(Long id);
 
-    VehicleResponse findVehicleResponseByVin(Long companyId, String vin);
+    Vehicle fetchByIdReference(Long id);
 
-    Vehicle findByYearMakeModel(String year, String make, String model);
+    List<VehicleResponse> fetchAllVehicles(Long companyId);
+
+    List<VehicleResponse> fetchVehicles(Long companyId, Long... catalogIds);
+
+    Vehicle fetchVehicleByVin(Long companyId, String vin);
+
+    VehicleResponse fetchVehicleResponseByVin(Long companyId, String vin);
+
+    Vehicle fetchVehicleByYearMakeModel(String year, String make, String model);
+
+    Vehicle fetchOrCreateVehicleFromRequest(Long companyId, VehicleCreateForm vehicleCreateForm);
 
     Vehicle storeVehicleFromRequest(Long companyId, VehicleCreateForm vehicleCreateForm);
 

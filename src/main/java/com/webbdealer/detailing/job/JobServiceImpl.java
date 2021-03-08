@@ -109,8 +109,16 @@ public class JobServiceImpl implements JobService {
 
         // This can only be created by a manager
         // 1. Store vehicle
-        Vehicle vehicle = vehicleService.storeVehicleFromRequest(companyId, jobCreateForm.getVehicle());
+        Long vehicleId = jobCreateForm.getVehicle().getId();
+        Vehicle vehicle;
+        if(vehicleId == null) {
+            vehicle = vehicleService.fetchOrCreateVehicleFromRequest(companyId, jobCreateForm.getVehicle());
+        }
+        else {
+            vehicle = vehicleService.fetchByIdReference(vehicleId);
+        }
         job.setVehicle(vehicle);
+
 
         // 2. Store customer, if customer doesn't exist
         // otherwise attach customer to this job
@@ -120,7 +128,7 @@ public class JobServiceImpl implements JobService {
 
         Customer customer;
         if(customerId == null) {
-            customer = customerService.storeCustomerFromRequest(companyId, customerForm);
+            customer = customerService.fetchOrCreateCustomerFromRequest(companyId, customerForm);
         }
         else {
             customer = customerService.fetchByIdReference(customerId);
@@ -231,6 +239,7 @@ public class JobServiceImpl implements JobService {
         List<ReconditionServiceResponse> reconditionList = reconditionService.mapReconditionListToResponseList(job.getReconditioningServices());
         jobResponse.setServices(reconditionList);
 
+        jobResponse.setId(job.getId());
         jobResponse.setStatus(jobStatus(job));
         jobResponse.setEmployeeNotes(job.getEmployeeNotes());
         jobResponse.setManagerNotes(job.getManagerNotes());

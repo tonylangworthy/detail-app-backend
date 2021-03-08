@@ -13,6 +13,8 @@ public interface CustomerService {
 
     Customer fetchByIdReference(Long id);
 
+    Customer fetchOrCreateCustomerFromRequest(Long companyId, CustomerCreateForm customerForm);
+
     Customer attachCustomerToJob(Long customerId, Job job);
 
     Customer storeCustomerFromRequest(Long customerId, CustomerCreateForm customerCreateForm);

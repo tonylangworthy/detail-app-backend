@@ -38,6 +38,17 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
+    public Customer fetchOrCreateCustomerFromRequest(Long companyId, CustomerCreateForm customerForm) {
+        final String firstName = customerForm.getFirstName();
+        final String lastName = customerForm.getLastName();
+        final String phone = customerForm.getPhone();
+        Optional<Customer> optionalCustomer
+                = customerRepository.findByFirstNameAndLastNameAndPhone(firstName, lastName, phone);
+
+        return optionalCustomer.orElseGet(() -> storeCustomerFromRequest(companyId, customerForm));
+    }
+
+    @Override
     public Customer attachCustomerToJob(Long customerId, Job job) {
 
         Customer customer = customerRepository.getOne(customerId);

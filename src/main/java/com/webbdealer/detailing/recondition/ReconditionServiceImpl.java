@@ -108,7 +108,7 @@ public class ReconditionServiceImpl implements ReconditionService {
         reconditionResponse.setName(recondition.getName());
         reconditionResponse.setDescription(recondition.getDescription());
         reconditionResponse.setPrice(recondition.getPrice().toPlainString());
-        reconditionResponse.setCreatedAt(recondition.getCreatedAt().toString());
+//        reconditionResponse.setCreatedAt(recondition.getCreatedAt().toString());
 //        reconditionResponse.setUpdatedAt(recondition.getUpdatedAt().toString());
         return reconditionResponse;
     }

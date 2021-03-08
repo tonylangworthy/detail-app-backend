@@ -36,7 +36,8 @@ public class Customer extends BaseEntity implements Serializable {
     @Column(name = "notes", columnDefinition = "TEXT")
     private String notes;
 
-    @Enumerated(EnumType.STRING)
+    @Enumerated
+    @Column(name = "customer_type", columnDefinition = "smallint")
     private CustomerType customerType;
 
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.PERSIST)

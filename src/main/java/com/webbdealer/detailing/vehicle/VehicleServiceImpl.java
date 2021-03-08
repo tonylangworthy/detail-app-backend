@@ -9,16 +9,22 @@ import com.webbdealer.detailing.vehicle.dto.VehicleResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
+import javax.persistence.EntityNotFoundException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
-public class VehicleServiceImpl implements VehicleService{
+public class VehicleServiceImpl implements VehicleService {
 
     private static final Logger logger = LoggerFactory.getLogger(VehicleServiceImpl.class);
 
@@ -42,7 +48,69 @@ public class VehicleServiceImpl implements VehicleService{
     }
 
     @Override
-    public Vehicle findVehicleByVin(Long companyId, String vin) {
+    public Optional<Vehicle> fetchById(Long id) {
+        return vehicleRepository.findById(id);
+    }
+
+    @Override
+    public Vehicle fetchByIdReference(Long id) {
+        return vehicleRepository.getOne(id);
+    }
+
+    @Override
+    public List<VehicleResponse> fetchAllVehicles(Long companyId) {
+        List<Vehicle> vehicles = vehicleRepository.findAllByCompanyId(companyId);
+        List<VehicleResponse> vehicleResponseList = new ArrayList<>();
+        List<Long> catalogIds = vehicles.stream().map(Vehicle::getCatalogId).collect(Collectors.toList());
+
+        logger.info("catalog ids: " + catalogIds.toString());
+
+        ResponseEntity<CatalogVehicleResponse[]> apiResponse = lookupService.lookupByCatalogIds(catalogIds);
+
+        logger.info("status code: " + apiResponse.getStatusCodeValue());
+        if(apiResponse.getStatusCodeValue() == 200) {
+            CatalogVehicleResponse[] responseArray = apiResponse.getBody();
+            logger.info("response array: " + responseArray.length);
+            vehicles.forEach(vehicle -> {
+                logger.info("catalogId: " + vehicle.getCatalogId());
+                List<CatalogVehicleResponse> apiResponseList = Arrays.stream(responseArray)
+                        .filter(response -> Long.valueOf(response.getVehicleId()).equals(vehicle.getCatalogId()))
+                        .collect(Collectors.toList());
+                logger.info("response list: " +apiResponseList.size() );
+                apiResponseList.forEach(responseItem -> {
+                    logger.info("New Vehicle Response");
+                    VehicleResponse vehicleResponse = new VehicleResponse();
+                    vehicleResponse.setYear(responseItem.getYear());
+                    vehicleResponse.setMake(responseItem.getMake());
+                    vehicleResponse.setModel(responseItem.getModel());
+                    vehicleResponse.setTrim(responseItem.getTrim());
+                    vehicleResponse.setStyle(responseItem.getStyle());
+
+                    vehicleResponse.setId(vehicle.getId());
+                    vehicleResponse.setCatalogId(vehicle.getCatalogId());
+                    vehicleResponse.setVin(vehicle.getVin());
+                    vehicleResponse.setColor(vehicle.getColor());
+                    vehicleResponse.setArrivedAt(vehicle.getArrivalDate());
+                    vehicleResponse.setCreatedAt(vehicle.getCreatedAt());
+                    vehicleResponse.setUpdatedAt(vehicle.getUpdatedAt());
+                    vehicleResponseList.add(vehicleResponse);
+                });
+            });
+        }
+
+        return vehicleResponseList;
+    }
+
+    @Override
+    public List<VehicleResponse> fetchVehicles(Long companyId, Long... catalogIds) {
+        List<Vehicle> vehicles = vehicleRepository.findByCompanyIdAndCatalogId(companyId, catalogIds);
+        List<VehicleResponse> vehicleResponseList = new ArrayList<>();
+        vehicles.forEach(vehicle -> vehicleResponseList.add(mapVehicleToResponse(vehicle)));
+        return vehicleResponseList;
+    }
+
+    @Override
+    public Vehicle fetchVehicleByVin(Long companyId, String vin) {
 
         Vehicle vehicle = null;
 
@@ -55,7 +123,7 @@ public class VehicleServiceImpl implements VehicleService{
         }
         // 3. Otherwise, call API service.
         else {
-            CatalogApiResponse apiResponse = lookupService.lookupByVin(vin);
+            CatalogVehicleResponse apiResponse = lookupService.lookupByVin(vin);
             vehicle = storageService.storeVehicleFromApiResponse(apiResponse);
             logger.info(vehicle.toString());
         }
@@ -63,14 +131,14 @@ public class VehicleServiceImpl implements VehicleService{
     }
 
     @Override
-    public VehicleResponse findVehicleResponseByVin(Long companyId, String vin) {
+    public VehicleResponse fetchVehicleResponseByVin(Long companyId, String vin) {
     	
-        Vehicle vehicle = findVehicleByVin(companyId, vin);
+        Vehicle vehicle = fetchVehicleByVin(companyId, vin);
 
         VehicleResponse response = new VehicleResponse();
         response.setId(vehicle.getId());
         response.setVin(vehicle.getVin());
-        response.setYear(vehicle.getYear());
+//        response.setYear(vehicle.getYear());
 //        response.setMake(vehicle.getMake().getName());
 //        response.setModel(vehicle.getModel().getName());
 //        response.setTrim(vehicle.getTrim().getName());
@@ -80,8 +148,15 @@ public class VehicleServiceImpl implements VehicleService{
 
 
     @Override
-    public Vehicle findByYearMakeModel(String year, String make, String model) {
+    public Vehicle fetchVehicleByYearMakeModel(String year, String make, String model) {
         return null;
+    }
+
+    @Override
+    public Vehicle fetchOrCreateVehicleFromRequest(Long companyId, VehicleCreateForm vehicleCreateForm) {
+        String vin = vehicleCreateForm.getVin();
+        Optional<Vehicle> optionalVehicle = vehicleRepository.findByVinAndCompanyId(vin, companyId);
+        return optionalVehicle.orElseGet(() -> storeVehicleFromRequest(companyId, vehicleCreateForm));
     }
 
     @Override
@@ -92,11 +167,13 @@ public class VehicleServiceImpl implements VehicleService{
         Vehicle vehicle = new Vehicle();
         vehicle.setCatalogId(vehicleCreateForm.getCatalogId());
         vehicle.setVin(vehicleCreateForm.getVin());
+        vehicle.setColor(vehicleCreateForm.getColor());
 
         LocalDate arrivalDate = vehicleCreateForm.getArrivalDate();
         LocalTime arrivalTime = vehicleCreateForm.getArrivalTime();
+        LocalDateTime arrivalDateTime = LocalDateTime.of(arrivalDate, arrivalTime);
 
-        vehicle.setArrivalDate(LocalDateTime.now());
+        vehicle.setArrivalDate(arrivalDateTime);
 
         return storeVehicle(companyId, vehicle);
     }
@@ -121,11 +198,11 @@ public class VehicleServiceImpl implements VehicleService{
         VehicleResponse vehicleResponse = new VehicleResponse();
         vehicleResponse.setId(vehicle.getId());
         vehicleResponse.setVin(vehicle.getVin());
-        vehicleResponse.setYear(vehicle.getYear());
+//        vehicleResponse.setYear(vehicle.getYear());
 //        vehicleResponse.setMake(vehicle.getMake().getName());
 //        vehicleResponse.setModel(vehicle.getModel().getName());
 //        vehicleResponse.setTrim(vehicle.getTrim().getName());
-        vehicleResponse.setCreatedAt(vehicle.getCreatedAt().toString());
+        vehicleResponse.setCreatedAt(vehicle.getCreatedAt());
 //        vehicleResponse.setUpdatedAt(vehicle.getUpdatedAt().toString());
         return vehicleResponse;
     }

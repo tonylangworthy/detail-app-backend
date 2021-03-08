@@ -1,12 +1,18 @@
 package com.webbdealer.detailing.vehicle;
 
+import org.springframework.http.ResponseEntity;
+
+import java.util.List;
+
 public interface VehicleLookupService {
 
-    CatalogApiResponse lookupByVin(String vin);
+    ResponseEntity<CatalogVehicleResponse[]> lookupByCatalogIds(List<Long> idList);
 
-    CatalogApiResponse lookupByYearMakeModel(String year, String make, String model);
+    CatalogVehicleResponse lookupByVin(String vin);
 
-    CatalogApiResponse lookupByYearMakeModelTrim(String year, String make, String model, String trim);
+    CatalogVehicleResponse lookupByYearMakeModel(String year, String make, String model);
 
-    CatalogApiResponse lookupByApiId(String id);
+    CatalogVehicleResponse lookupByYearMakeModelTrim(String year, String make, String model, String trim);
+
+    String commaSeparatedIdList(List<Long> idList);
 }

@@ -15,14 +15,11 @@ import java.util.Objects;
 @Table(name = "vehicles")
 public class Vehicle extends BaseEntity implements Serializable {
 
-    @Column(name = "vin")
+    @Column(name = "vin", unique = true)
     private String vin;
 
     @Column(name = "catalog_id")
 	private Long catalogId;
-
-    @Column(name = "year")
-    private String year;
 
     @Column(name = "color")
     private String color;
@@ -50,14 +47,6 @@ public class Vehicle extends BaseEntity implements Serializable {
 	public void setCatalogId(Long catalogId) {
 		this.catalogId = catalogId;
 	}
-
-	public String getYear() {
-        return year;
-    }
-
-    public void setYear(String year) {
-        this.year = year;
-    }
 
     public String getColor() {
         return color;
@@ -91,7 +80,6 @@ public class Vehicle extends BaseEntity implements Serializable {
 		Vehicle vehicle = (Vehicle) o;
 		return Objects.equals(vin, vehicle.vin) &&
 				Objects.equals(catalogId, vehicle.catalogId) &&
-				Objects.equals(year, vehicle.year) &&
 				Objects.equals(color, vehicle.color) &&
 				Objects.equals(arrivalDate, vehicle.arrivalDate) &&
 				Objects.equals(company, vehicle.company);
@@ -99,7 +87,7 @@ public class Vehicle extends BaseEntity implements Serializable {
 
 	@Override
 	public int hashCode() {
-		return Objects.hash(super.hashCode(), vin, catalogId, year, color, arrivalDate, company);
+		return Objects.hash(super.hashCode(), vin, catalogId, color, arrivalDate, company);
 	}
 
 	@Override
@@ -107,7 +95,6 @@ public class Vehicle extends BaseEntity implements Serializable {
 		return "Vehicle{" +
 				"vin='" + vin + '\'' +
 				", catalogId=" + catalogId +
-				", year='" + year + '\'' +
 				", color='" + color + '\'' +
 				", arrivalDate=" + arrivalDate +
 				", company=" + company +
