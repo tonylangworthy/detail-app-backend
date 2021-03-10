@@ -192,26 +192,26 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public void startJob(Long id) {
-        Job job = fetchById(id);
+    public void startJob(Long jobId, Long userId) {
+        Job job = fetchById(jobId);
         job.setJobStartedAt(LocalDateTime.now());
     }
 
     @Override
-    public void pauseJob(Long id) {
-        Job job = fetchById(id);
+    public void pauseJob(Long jobId) {
+        Job job = fetchById(jobId);
         job.setJobPausedAt(LocalDateTime.now());
     }
 
     @Override
-    public void endJob(Long id) {
-        Job job = fetchById(id);
+    public void endJob(Long jobId) {
+        Job job = fetchById(jobId);
         job.setJobEndedAt(LocalDateTime.now());
     }
 
     @Override
-    public void cancelJob(Long id) {
-        Job job = fetchById(id);
+    public void cancelJob(Long jobId) {
+        Job job = fetchById(jobId);
         job.setJobCanceled(true);
     }
 

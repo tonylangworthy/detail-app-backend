@@ -1,5 +1,6 @@
 package com.webbdealer.detailing.job;
 
+import com.webbdealer.detailing.employee.dao.User;
 import com.webbdealer.detailing.job.dao.Job;
 import com.webbdealer.detailing.job.dao.JobStatus;
 import com.webbdealer.detailing.job.dto.JobCreateForm;
@@ -28,11 +29,11 @@ public interface JobService {
 
     JobStatus jobStatus(Job job);
 
-    void startJob(Long id);
+    void startJob(Long jobId, Long userId);
 
-    void pauseJob(Long id);
+    void pauseJob(Long jobId);
 
-    void endJob(Long id);
+    void endJob(Long jobId);
 
-    void cancelJob(Long id);
+    void cancelJob(Long jobId);
 }
