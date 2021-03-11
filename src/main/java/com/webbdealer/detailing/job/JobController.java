@@ -1,6 +1,7 @@
 package com.webbdealer.detailing.job;
 
 import com.webbdealer.detailing.job.dao.Job;
+import com.webbdealer.detailing.job.dao.JobStatus;
 import com.webbdealer.detailing.job.dto.JobCreateForm;
 import com.webbdealer.detailing.job.dto.JobResponse;
 import com.webbdealer.detailing.security.JwtClaim;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 @RestController
 @RequestMapping("/jobs")
@@ -74,5 +76,34 @@ public class JobController {
         logger.info(jobs.toString());
 
         return ResponseEntity.ok(jobs);
+    }
+
+    @PatchMapping("")
+    public ResponseEntity<?> updateJobStatus(@RequestParam(required = false) String action) {
+
+        String output = "";
+        String jobAction = action.trim().toLowerCase();
+        System.out.println(jobAction);
+
+        switch (jobAction) {
+            case "start":
+                output = "job started";
+                break;
+            case "pause":
+                output = "job paused";
+                break;
+            case "end":
+                output = "job ended";
+                break;
+            case "cancel":
+                output = "job canceled";
+                break;
+            default:
+                output = "invalid action!";
+                break;
+        }
+
+
+        return ResponseEntity.ok(output);
     }
 }
