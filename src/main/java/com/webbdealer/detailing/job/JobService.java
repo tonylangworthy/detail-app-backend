@@ -6,6 +6,7 @@ import com.webbdealer.detailing.job.dao.JobStatus;
 import com.webbdealer.detailing.job.dto.JobCreateForm;
 import com.webbdealer.detailing.job.dto.JobResponse;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -29,11 +30,11 @@ public interface JobService {
 
     JobStatus jobStatus(Job job);
 
-    void startJob(Long jobId, Long userId);
+    void startJob(Long jobId, Long userId, LocalDateTime startAt);
 
-    void pauseJob(Long jobId);
+    void pauseJob(Long jobId, LocalDateTime pauseAt);
 
-    void endJob(Long jobId);
+    void endJob(Long jobId, LocalDateTime endAt);
 
     void cancelJob(Long jobId);
 }

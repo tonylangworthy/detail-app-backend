@@ -192,27 +192,46 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public void startJob(Long jobId, Long userId) {
+    public void startJob(Long jobId, Long userId, LocalDateTime startAt) {
         Job job = fetchById(jobId);
-        job.setJobStartedAt(LocalDateTime.now());
+        if(job.getJobEndedAt() != null) {
+            throw new InvalidJobActionException("Job already ended!!");
+        }
+        job.setJobStartedAt(startAt);
+        jobRepository.save(job);
     }
 
     @Override
-    public void pauseJob(Long jobId) {
+    public void pauseJob(Long jobId, LocalDateTime pauseAt) {
         Job job = fetchById(jobId);
-        job.setJobPausedAt(LocalDateTime.now());
+        if(job.getJobStartedAt() == null) {
+            throw new InvalidJobActionException("Job hasn't even been started yet!!");
+        }
+        if(job.getJobEndedAt() != null) {
+            throw new InvalidJobActionException("Job already ended!!");
+        }
+        job.setJobPausedAt(pauseAt);
+        jobRepository.save(job);
     }
 
     @Override
-    public void endJob(Long jobId) {
+    public void endJob(Long jobId, LocalDateTime endAt) {
         Job job = fetchById(jobId);
-        job.setJobEndedAt(LocalDateTime.now());
+        if(job.getJobEndedAt() != null) {
+            throw new InvalidJobActionException("Job already ended!!");
+        }
+        if(job.getJobStartedAt() == null) {
+            throw new InvalidJobActionException("Job hasn't even been started yet!!");
+        }
+        job.setJobEndedAt(endAt);
+        jobRepository.save(job);
     }
 
     @Override
     public void cancelJob(Long jobId) {
         Job job = fetchById(jobId);
         job.setJobCanceled(true);
+        jobRepository.save(job);
     }
 
     private List<JobResponse> mapJobListToResponseList(List<Job> jobs) {
@@ -243,6 +262,11 @@ public class JobServiceImpl implements JobService {
         jobResponse.setStatus(jobStatus(job));
         jobResponse.setEmployeeNotes(job.getEmployeeNotes());
         jobResponse.setManagerNotes(job.getManagerNotes());
+
+        jobResponse.setJobStartedAt(job.getJobStartedAt());
+        jobResponse.setJobPausedAt(job.getJobPausedAt());
+        jobResponse.setJobEndedAt(job.getJobEndedAt());
+
         jobResponse.setCreatedAt(job.getCreatedAt());
         jobResponse.setUpdatedAt(job.getUpdatedAt());
 

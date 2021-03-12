@@ -2,6 +2,7 @@ package com.webbdealer.detailing.job;
 
 import com.webbdealer.detailing.job.dao.Job;
 import com.webbdealer.detailing.job.dao.JobStatus;
+import com.webbdealer.detailing.job.dto.JobActionRequest;
 import com.webbdealer.detailing.job.dto.JobCreateForm;
 import com.webbdealer.detailing.job.dto.JobResponse;
 import com.webbdealer.detailing.security.JwtClaim;
@@ -15,6 +16,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -78,25 +80,37 @@ public class JobController {
         return ResponseEntity.ok(jobs);
     }
 
-    @PatchMapping("")
-    public ResponseEntity<?> updateJobStatus(@RequestParam(required = false) String action) {
+    @PatchMapping("/{id}")
+    public ResponseEntity<?> updateJobStatus(@PathVariable Long id,
+                                             @RequestBody JobActionRequest jobActionRequest) {
+
+        SecurityContext context = SecurityContextHolder.getContext();
+        Authentication auth = context.getAuthentication();
+
+        JwtClaim userDetails = (JwtClaim) auth.getPrincipal();
 
         String output = "";
-        String jobAction = action.trim().toLowerCase();
+        String jobAction = jobActionRequest.getAction().trim().toLowerCase();
+        LocalDateTime actionAt = jobActionRequest.getActionAt();
         System.out.println(jobAction);
+        System.out.println(jobActionRequest.getActionAt());
 
         switch (jobAction) {
             case "start":
                 output = "job started";
+                jobService.startJob(id, userDetails.getUserId(), actionAt);
                 break;
             case "pause":
                 output = "job paused";
+                jobService.pauseJob(id, actionAt);
                 break;
             case "end":
                 output = "job ended";
+                jobService.endJob(id, actionAt);
                 break;
             case "cancel":
                 output = "job canceled";
+                jobService.cancelJob(id);
                 break;
             default:
                 output = "invalid action!";

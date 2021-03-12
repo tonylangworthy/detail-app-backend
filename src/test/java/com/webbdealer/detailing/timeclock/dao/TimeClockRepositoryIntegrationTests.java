@@ -40,25 +40,25 @@ public class TimeClockRepositoryIntegrationTests {
     @Test
     public void punchTimeClock_Test() {
 
-        Optional<User> optionalUser = userRepository.findById(2L);
-        Optional<ClockedReason> optionalClockedReason = clockedReasonRepository.findById(2L);
-        ClockedReason reason = optionalClockedReason.orElseThrow();
-
-
-        System.out.println(reason.getName());
-
-        if(optionalUser.isPresent()) {
-            LocalDateTime dateTime = LocalDateTime.now();
-            System.out.println(dateTime);
-
-            TimeClock timeClock = new TimeClock();
-            timeClock.setUser(optionalUser.get());
-            timeClock.setClockedReason(reason);
-            timeClock.setClockedAt(dateTime);
-            timeClock.setClockedStatus(ClockedStatus.OUT);
-            timeClockRepository.save(timeClock);
-
-        }
+//        Optional<User> optionalUser = userRepository.findById(2L);
+//        Optional<ClockedReason> optionalClockedReason = clockedReasonRepository.findById(2L);
+//        ClockedReason reason = optionalClockedReason.orElseThrow();
+//
+//
+//        System.out.println(reason.getName());
+//
+//        if(optionalUser.isPresent()) {
+//            LocalDateTime dateTime = LocalDateTime.now();
+//            System.out.println(dateTime);
+//
+//            TimeClock timeClock = new TimeClock();
+//            timeClock.setUser(optionalUser.get());
+//            timeClock.setClockedReason(reason);
+//            timeClock.setClockedAt(dateTime);
+//            timeClock.setClockedStatus(ClockedStatus.OUT);
+////            timeClockRepository.save(timeClock);
+//
+//        }
 
 
     }

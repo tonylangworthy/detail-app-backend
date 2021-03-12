@@ -17,11 +17,11 @@ public class JobResponse implements Serializable {
 
     private JobStatus status;
 
-    private String jobStartedAt;
+    private LocalDateTime jobStartedAt;
 
-    private String jobPausedAt;
+    private LocalDateTime jobPausedAt;
 
-    private String jobEndedAt;
+    private LocalDateTime jobEndedAt;
 
     private boolean canceled;
 
@@ -57,27 +57,27 @@ public class JobResponse implements Serializable {
         this.status = status;
     }
 
-    public String getJobStartedAt() {
+    public LocalDateTime getJobStartedAt() {
         return jobStartedAt;
     }
 
-    public void setJobStartedAt(String jobStartedAt) {
+    public void setJobStartedAt(LocalDateTime jobStartedAt) {
         this.jobStartedAt = jobStartedAt;
     }
 
-    public String getJobPausedAt() {
+    public LocalDateTime getJobPausedAt() {
         return jobPausedAt;
     }
 
-    public void setJobPausedAt(String jobPausedAt) {
+    public void setJobPausedAt(LocalDateTime jobPausedAt) {
         this.jobPausedAt = jobPausedAt;
     }
 
-    public String getJobEndedAt() {
+    public LocalDateTime getJobEndedAt() {
         return jobEndedAt;
     }
 
-    public void setJobEndedAt(String jobEndedAt) {
+    public void setJobEndedAt(LocalDateTime jobEndedAt) {
         this.jobEndedAt = jobEndedAt;
     }
 
