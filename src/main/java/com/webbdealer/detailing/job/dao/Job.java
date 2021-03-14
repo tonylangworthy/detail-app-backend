@@ -11,6 +11,8 @@ import com.webbdealer.detailing.vehicle.dao.Vehicle;
 import javax.persistence.*;
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -20,13 +22,13 @@ import java.util.Objects;
 public class Job extends BaseEntity implements Serializable {
 
     @Column(name = "job_started_at", columnDefinition = "TIMESTAMP WITH TIME ZONE")
-    private LocalDateTime jobStartedAt;
+    private ZonedDateTime jobStartedAt;
 
     @Column(name = "job_paused_at", columnDefinition = "TIMESTAMP WITH TIME ZONE")
-    private LocalDateTime jobPausedAt;
+    private ZonedDateTime jobPausedAt;
 
     @Column(name = "job_ended_at", columnDefinition = "TIMESTAMP WITH TIME ZONE")
-    private LocalDateTime jobEndedAt;
+    private ZonedDateTime jobEndedAt;
 
     @Column(name = "job_canceled")
     private boolean jobCanceled;
@@ -58,7 +60,7 @@ public class Job extends BaseEntity implements Serializable {
             joinColumns = @JoinColumn(name = "employee_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "job_id", referencedColumnName = "id")
     )
-    private List<User> employees;
+    private List<User> employees = new ArrayList<>();
 
     public List<User> getEmployees() {
         return employees;
@@ -75,27 +77,27 @@ public class Job extends BaseEntity implements Serializable {
             inverseJoinColumns = @JoinColumn(name = "job_id", referencedColumnName = "id"))
     private List<Recondition> reconditioningServices = new ArrayList<>();
 
-    public LocalDateTime getJobStartedAt() {
+    public ZonedDateTime getJobStartedAt() {
         return jobStartedAt;
     }
 
-    public void setJobStartedAt(LocalDateTime jobStartedAt) {
+    public void setJobStartedAt(ZonedDateTime jobStartedAt) {
         this.jobStartedAt = jobStartedAt;
     }
 
-    public LocalDateTime getJobPausedAt() {
+    public ZonedDateTime getJobPausedAt() {
         return jobPausedAt;
     }
 
-    public void setJobPausedAt(LocalDateTime jobPausedAt) {
+    public void setJobPausedAt(ZonedDateTime jobPausedAt) {
         this.jobPausedAt = jobPausedAt;
     }
 
-    public LocalDateTime getJobEndedAt() {
+    public ZonedDateTime getJobEndedAt() {
         return jobEndedAt;
     }
 
-    public void setJobEndedAt(LocalDateTime jobEndedAt) {
+    public void setJobEndedAt(ZonedDateTime jobEndedAt) {
         this.jobEndedAt = jobEndedAt;
     }
 

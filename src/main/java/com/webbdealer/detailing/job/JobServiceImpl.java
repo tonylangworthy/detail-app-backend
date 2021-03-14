@@ -16,11 +16,10 @@ import com.webbdealer.detailing.job.dto.JobCreateForm;
 import com.webbdealer.detailing.job.dto.JobResponse;
 import com.webbdealer.detailing.recondition.ReconditionService;
 import com.webbdealer.detailing.recondition.dao.Recondition;
-import com.webbdealer.detailing.recondition.dto.ReconditionCreateForm;
 import com.webbdealer.detailing.recondition.dto.ReconditionServiceResponse;
+import com.webbdealer.detailing.shared.TimezoneConverter;
 import com.webbdealer.detailing.vehicle.VehicleService;
 import com.webbdealer.detailing.vehicle.dao.Vehicle;
-import com.webbdealer.detailing.vehicle.dto.VehicleCreateForm;
 import com.webbdealer.detailing.vehicle.dto.VehicleResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,6 +29,7 @@ import org.springframework.stereotype.Service;
 import javax.persistence.EntityNotFoundException;
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -51,6 +51,8 @@ public class JobServiceImpl implements JobService {
 
     private EmployeeService employeeService;
 
+    private ZoneId zoneId;
+
     @Autowired
     public JobServiceImpl(CompanyService companyService,
                           JobRepository jobRepository,
@@ -65,6 +67,9 @@ public class JobServiceImpl implements JobService {
         this.customerService = customerService;
         this.reconditionService = reconditionService;
         this.employeeService = employeeService;
+
+        this.zoneId = ZoneId.of("America/Chicago");
+
     }
 
     @Override
@@ -192,17 +197,20 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public void startJob(Long jobId, Long userId, LocalDateTime startAt) {
+    public Job startJob(Long jobId, Long userId, LocalDateTime startAt) {
         Job job = fetchById(jobId);
+        User user = employeeService.fetchByIdReference(userId);
+
         if(job.getJobEndedAt() != null) {
             throw new InvalidJobActionException("Job already ended!!");
         }
-        job.setJobStartedAt(startAt);
-        jobRepository.save(job);
+        job.setJobStartedAt(startAt.atZone(zoneId));
+        job.getEmployees().add(user);
+        return jobRepository.save(job);
     }
 
     @Override
-    public void pauseJob(Long jobId, LocalDateTime pauseAt) {
+    public Job pauseJob(Long jobId, LocalDateTime pauseAt) {
         Job job = fetchById(jobId);
         if(job.getJobStartedAt() == null) {
             throw new InvalidJobActionException("Job hasn't even been started yet!!");
@@ -210,12 +218,12 @@ public class JobServiceImpl implements JobService {
         if(job.getJobEndedAt() != null) {
             throw new InvalidJobActionException("Job already ended!!");
         }
-        job.setJobPausedAt(pauseAt);
-        jobRepository.save(job);
+        job.setJobPausedAt(pauseAt.atZone(zoneId));
+        return jobRepository.save(job);
     }
 
     @Override
-    public void endJob(Long jobId, LocalDateTime endAt) {
+    public Job endJob(Long jobId, LocalDateTime endAt) {
         Job job = fetchById(jobId);
         if(job.getJobEndedAt() != null) {
             throw new InvalidJobActionException("Job already ended!!");
@@ -223,15 +231,15 @@ public class JobServiceImpl implements JobService {
         if(job.getJobStartedAt() == null) {
             throw new InvalidJobActionException("Job hasn't even been started yet!!");
         }
-        job.setJobEndedAt(endAt);
-        jobRepository.save(job);
+        job.setJobEndedAt(endAt.atZone(zoneId));
+        return jobRepository.save(job);
     }
 
     @Override
-    public void cancelJob(Long jobId) {
+    public Job cancelJob(Long jobId) {
         Job job = fetchById(jobId);
         job.setJobCanceled(true);
-        jobRepository.save(job);
+        return jobRepository.save(job);
     }
 
     private List<JobResponse> mapJobListToResponseList(List<Job> jobs) {
@@ -244,6 +252,8 @@ public class JobServiceImpl implements JobService {
     }
 
     private JobResponse mapJobToResponse(Job job) {
+        TimezoneConverter timezoneConverter = new TimezoneConverter.TimezoneConverterBuilder("America/Chicago").build();
+
         JobResponse jobResponse = new JobResponse();
 
         CustomerResponse customerResponse = customerService.mapCustomerToResponse(job.getCustomer());
@@ -263,9 +273,9 @@ public class JobServiceImpl implements JobService {
         jobResponse.setEmployeeNotes(job.getEmployeeNotes());
         jobResponse.setManagerNotes(job.getManagerNotes());
 
-        jobResponse.setJobStartedAt(job.getJobStartedAt());
-        jobResponse.setJobPausedAt(job.getJobPausedAt());
-        jobResponse.setJobEndedAt(job.getJobEndedAt());
+        if(job.getJobStartedAt() != null) jobResponse.setJobStartedAt(timezoneConverter.fromUtcToLocalDateTime(job.getJobStartedAt()));
+        if(job.getJobPausedAt() != null) jobResponse.setJobPausedAt(job.getJobPausedAt().withZoneSameInstant(zoneId).toLocalDateTime());
+        if(job.getJobEndedAt() != null) jobResponse.setJobEndedAt(job.getJobEndedAt().withZoneSameInstant(zoneId).toLocalDateTime());
 
         jobResponse.setCreatedAt(job.getCreatedAt());
         jobResponse.setUpdatedAt(job.getUpdatedAt());

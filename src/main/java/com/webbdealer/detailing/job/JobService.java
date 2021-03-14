@@ -30,11 +30,11 @@ public interface JobService {
 
     JobStatus jobStatus(Job job);
 
-    void startJob(Long jobId, Long userId, LocalDateTime startAt);
+    Job startJob(Long jobId, Long userId, LocalDateTime startAt);
 
-    void pauseJob(Long jobId, LocalDateTime pauseAt);
+    Job pauseJob(Long jobId, LocalDateTime pauseAt);
 
-    void endJob(Long jobId, LocalDateTime endAt);
+    Job endJob(Long jobId, LocalDateTime endAt);
 
-    void cancelJob(Long jobId);
+    Job cancelJob(Long jobId);
 }

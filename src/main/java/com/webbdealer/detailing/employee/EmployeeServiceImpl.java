@@ -33,6 +33,16 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
+    public Optional<User> fetchById(Long userId) {
+        return userRepository.findById(userId);
+    }
+
+    @Override
+    public User fetchByIdReference(Long userId) {
+        return userRepository.getOne(userId);
+    }
+
+    @Override
     public User createAdmin(User user) {
         authorityService.addToAdminRole(user);
         return userRepository.save(user);

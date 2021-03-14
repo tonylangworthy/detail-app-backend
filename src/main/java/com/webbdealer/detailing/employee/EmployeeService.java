@@ -7,8 +7,13 @@ import com.webbdealer.detailing.employee.dto.EmployeeResponse;
 import com.webbdealer.detailing.job.dao.Job;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface EmployeeService {
+
+    Optional<User> fetchById(Long userId);
+
+    User fetchByIdReference(Long userId);
 
     User createAdmin(User user);
 
