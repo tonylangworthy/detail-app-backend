@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
-public class JobResponse implements Serializable {
+public class JobDetailsResponse implements Serializable {
 
     private Long id;
 
@@ -157,7 +157,7 @@ public class JobResponse implements Serializable {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        JobResponse that = (JobResponse) o;
+        JobDetailsResponse that = (JobDetailsResponse) o;
         return canceled == that.canceled && Objects.equals(id, that.id) && status == that.status && Objects.equals(jobStartedAt, that.jobStartedAt) && Objects.equals(jobPausedAt, that.jobPausedAt) && Objects.equals(jobEndedAt, that.jobEndedAt) && Objects.equals(employeeNotes, that.employeeNotes) && Objects.equals(managerNotes, that.managerNotes) && Objects.equals(createdAt, that.createdAt) && Objects.equals(updatedAt, that.updatedAt) && Objects.equals(customer, that.customer) && Objects.equals(vehicle, that.vehicle) && Objects.equals(services, that.services) && Objects.equals(employees, that.employees);
     }
 

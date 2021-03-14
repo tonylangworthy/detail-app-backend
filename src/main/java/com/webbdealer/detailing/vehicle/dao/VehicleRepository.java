@@ -14,7 +14,7 @@ public interface VehicleRepository extends JpaRepository<Vehicle, Long> {
     @Query(value = "select catalog_id from vehicles where company_id = ?1", nativeQuery = true)
     Long[] findAllCatalogIdsByCompanyId(Long companyId);
 
-    List<Vehicle> findByCompanyIdAndCatalogId(Long companyId, Long... catalogId);
+    List<Vehicle> findByCompanyIdAndCatalogIdIn(Long companyId, List<Long> catalogIds);
 
     Optional<Vehicle> findByVinAndCompanyId(String vin, Long companyId);
 }

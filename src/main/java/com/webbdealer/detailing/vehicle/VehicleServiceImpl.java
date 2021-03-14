@@ -60,53 +60,20 @@ public class VehicleServiceImpl implements VehicleService {
     @Override
     public List<VehicleResponse> fetchAllVehicles(Long companyId) {
         List<Vehicle> vehicles = vehicleRepository.findAllByCompanyId(companyId);
-        List<VehicleResponse> vehicleResponseList = new ArrayList<>();
         List<Long> catalogIds = vehicles.stream().map(Vehicle::getCatalogId).collect(Collectors.toList());
-
-        logger.info("catalog ids: " + catalogIds.toString());
 
         ResponseEntity<CatalogVehicleResponse[]> apiResponse = lookupService.lookupByCatalogIds(catalogIds);
 
-        logger.info("status code: " + apiResponse.getStatusCodeValue());
-        if(apiResponse.getStatusCodeValue() == 200) {
-            CatalogVehicleResponse[] responseArray = apiResponse.getBody();
-            logger.info("response array: " + responseArray.length);
-            vehicles.forEach(vehicle -> {
-                logger.info("catalogId: " + vehicle.getCatalogId());
-                List<CatalogVehicleResponse> apiResponseList = Arrays.stream(responseArray)
-                        .filter(response -> Long.valueOf(response.getVehicleId()).equals(vehicle.getCatalogId()))
-                        .collect(Collectors.toList());
-                logger.info("response list: " +apiResponseList.size() );
-                apiResponseList.forEach(responseItem -> {
-                    logger.info("New Vehicle Response");
-                    VehicleResponse vehicleResponse = new VehicleResponse();
-                    vehicleResponse.setYear(responseItem.getYear());
-                    vehicleResponse.setMake(responseItem.getMake());
-                    vehicleResponse.setModel(responseItem.getModel());
-                    vehicleResponse.setTrim(responseItem.getTrim());
-                    vehicleResponse.setStyle(responseItem.getStyle());
-
-                    vehicleResponse.setId(vehicle.getId());
-                    vehicleResponse.setCatalogId(vehicle.getCatalogId());
-                    vehicleResponse.setVin(vehicle.getVin());
-                    vehicleResponse.setColor(vehicle.getColor());
-                    vehicleResponse.setArrivedAt(vehicle.getArrivalDate());
-                    vehicleResponse.setCreatedAt(vehicle.getCreatedAt());
-                    vehicleResponse.setUpdatedAt(vehicle.getUpdatedAt());
-                    vehicleResponseList.add(vehicleResponse);
-                });
-            });
-        }
-
-        return vehicleResponseList;
+        return convertApiResponseToVehicle(vehicles, apiResponse);
     }
 
     @Override
-    public List<VehicleResponse> fetchVehicles(Long companyId, Long... catalogIds) {
-        List<Vehicle> vehicles = vehicleRepository.findByCompanyIdAndCatalogId(companyId, catalogIds);
-        List<VehicleResponse> vehicleResponseList = new ArrayList<>();
-        vehicles.forEach(vehicle -> vehicleResponseList.add(mapVehicleToResponse(vehicle)));
-        return vehicleResponseList;
+    public List<VehicleResponse> fetchVehiclesByCatalogIdList(Long companyId, List<Long> catalogIds) {
+        List<Vehicle> vehicles = vehicleRepository.findByCompanyIdAndCatalogIdIn(companyId, catalogIds);
+
+        ResponseEntity<CatalogVehicleResponse[]> apiResponse = lookupService.lookupByCatalogIds(catalogIds);
+
+        return convertApiResponseToVehicle(vehicles, apiResponse);
     }
 
     @Override
@@ -203,7 +170,46 @@ public class VehicleServiceImpl implements VehicleService {
 //        vehicleResponse.setModel(vehicle.getModel().getName());
 //        vehicleResponse.setTrim(vehicle.getTrim().getName());
         vehicleResponse.setCreatedAt(vehicle.getCreatedAt());
-//        vehicleResponse.setUpdatedAt(vehicle.getUpdatedAt().toString());
+        vehicleResponse.setUpdatedAt(vehicle.getUpdatedAt());
         return vehicleResponse;
+    }
+
+    private List<VehicleResponse> convertApiResponseToVehicle(
+            List<Vehicle> vehicles,
+            ResponseEntity<CatalogVehicleResponse[]> apiResponse) {
+
+        List<VehicleResponse> vehicleResponseList = new ArrayList<>();
+
+        logger.info("status code: " + apiResponse.getStatusCodeValue());
+        if(apiResponse.getStatusCodeValue() == 200) {
+            CatalogVehicleResponse[] responseArray = apiResponse.getBody();
+            logger.info("response array: " + responseArray.length);
+            vehicles.forEach(vehicle -> {
+                logger.info("catalogId: " + vehicle.getCatalogId());
+                List<CatalogVehicleResponse> apiResponseList = Arrays.stream(responseArray)
+                        .filter(response -> Long.valueOf(response.getVehicleId()).equals(vehicle.getCatalogId()))
+                        .collect(Collectors.toList());
+                logger.info("response list: " +apiResponseList.size() );
+                apiResponseList.forEach(responseItem -> {
+                    logger.info("New Vehicle Response");
+                    VehicleResponse vehicleResponse = new VehicleResponse();
+                    vehicleResponse.setYear(responseItem.getYear());
+                    vehicleResponse.setMake(responseItem.getMake());
+                    vehicleResponse.setModel(responseItem.getModel());
+                    vehicleResponse.setTrim(responseItem.getTrim());
+                    vehicleResponse.setStyle(responseItem.getStyle());
+
+                    vehicleResponse.setId(vehicle.getId());
+                    vehicleResponse.setCatalogId(vehicle.getCatalogId());
+                    vehicleResponse.setVin(vehicle.getVin());
+                    vehicleResponse.setColor(vehicle.getColor());
+                    vehicleResponse.setArrivedAt(vehicle.getArrivalDate());
+                    vehicleResponse.setCreatedAt(vehicle.getCreatedAt());
+                    vehicleResponse.setUpdatedAt(vehicle.getUpdatedAt());
+                    vehicleResponseList.add(vehicleResponse);
+                });
+            });
+        }
+        return vehicleResponseList;
     }
 }

@@ -16,7 +16,7 @@ public interface VehicleService {
 
     List<VehicleResponse> fetchAllVehicles(Long companyId);
 
-    List<VehicleResponse> fetchVehicles(Long companyId, Long... catalogIds);
+    List<VehicleResponse> fetchVehiclesByCatalogIdList(Long companyId, List<Long> catalogIds);
 
     Vehicle fetchVehicleByVin(Long companyId, String vin);
 

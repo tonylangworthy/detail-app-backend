@@ -13,17 +13,21 @@ import com.webbdealer.detailing.job.dao.Job;
 import com.webbdealer.detailing.job.dao.JobRepository;
 import com.webbdealer.detailing.job.dao.JobStatus;
 import com.webbdealer.detailing.job.dto.JobCreateForm;
-import com.webbdealer.detailing.job.dto.JobResponse;
+import com.webbdealer.detailing.job.dto.JobItemResponse;
+import com.webbdealer.detailing.job.dto.JobDetailsResponse;
 import com.webbdealer.detailing.recondition.ReconditionService;
 import com.webbdealer.detailing.recondition.dao.Recondition;
 import com.webbdealer.detailing.recondition.dto.ReconditionServiceResponse;
 import com.webbdealer.detailing.shared.TimezoneConverter;
+import com.webbdealer.detailing.vehicle.CatalogVehicleResponse;
+import com.webbdealer.detailing.vehicle.VehicleLookupService;
 import com.webbdealer.detailing.vehicle.VehicleService;
 import com.webbdealer.detailing.vehicle.dao.Vehicle;
 import com.webbdealer.detailing.vehicle.dto.VehicleResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityNotFoundException;
@@ -45,6 +49,8 @@ public class JobServiceImpl implements JobService {
 
     private VehicleService vehicleService;
 
+    private VehicleLookupService vehicleLookupService;
+
     private CustomerService customerService;
 
     private ReconditionService reconditionService;
@@ -57,6 +63,7 @@ public class JobServiceImpl implements JobService {
     public JobServiceImpl(CompanyService companyService,
                           JobRepository jobRepository,
                           VehicleService vehicleService,
+                          VehicleLookupService vehicleLookupService,
                           CustomerService customerService,
                           ReconditionService reconditionService,
                           EmployeeService employeeService) {
@@ -64,6 +71,7 @@ public class JobServiceImpl implements JobService {
         this.companyService = companyService;
         this.jobRepository = jobRepository;
         this.vehicleService = vehicleService;
+        this.vehicleLookupService = vehicleLookupService;
         this.customerService = customerService;
         this.reconditionService = reconditionService;
         this.employeeService = employeeService;
@@ -85,24 +93,24 @@ public class JobServiceImpl implements JobService {
 
     @Override
     @Transactional
-    public List<JobResponse> fetchAllJobs(Long companyId) {
+    public List<JobItemResponse> fetchAllJobs(Long companyId) {
 
         List<Job> jobs = jobRepository.findAllByCompanyId(companyId);
-        return mapJobListToResponseList(jobs);
+        return mapJobListToResponseList(companyId, jobs);
     }
 
     @Override
-    public List<JobResponse> fetchPendingJobs(Long companyId) {
+    public List<JobItemResponse> fetchPendingJobs(Long companyId) {
         return null;
     }
 
     @Override
-    public List<JobResponse> fetchActiveJobs(Long companyId) {
+    public List<JobItemResponse> fetchActiveJobs(Long companyId) {
         return null;
     }
 
     @Override
-    public List<JobResponse> fetchCompletedJobs(Long companyId) {
+    public List<JobItemResponse> fetchCompletedJobs(Long companyId) {
         return null;
     }
 
@@ -242,45 +250,81 @@ public class JobServiceImpl implements JobService {
         return jobRepository.save(job);
     }
 
-    private List<JobResponse> mapJobListToResponseList(List<Job> jobs) {
-        List<JobResponse> jobResponseList = new ArrayList<>();
+    private List<JobItemResponse> mapJobListToResponseList(Long companyId, List<Job> jobs) {
+        List<JobItemResponse> jobItemResponseList = new ArrayList<>();
+        List<Long> catalogIdList = new ArrayList<>();
+        jobs.forEach(job -> catalogIdList.add(job.getVehicle().getCatalogId()));
+
+        List<VehicleResponse> vehicleResponseList = vehicleService.fetchVehiclesByCatalogIdList(companyId, catalogIdList);
 
         jobs.forEach(job -> {
-            jobResponseList.add(mapJobToResponse(job));
+            Optional<VehicleResponse> vehicleResponseOptional = vehicleResponseList.stream()
+                    .filter(vehicleResponse -> job.getVehicle().getCatalogId().equals(vehicleResponse.getCatalogId()))
+                    .findFirst();
+                jobItemResponseList.add(mapJobToJobItemResponse(job, vehicleResponseOptional));
         });
-        return jobResponseList;
+
+        return jobItemResponseList;
     }
 
-    private JobResponse mapJobToResponse(Job job) {
+    private JobItemResponse mapJobToJobItemResponse(Job job, Optional<VehicleResponse> optionalVehicleResponse) {
+        JobItemResponse jobItem = new JobItemResponse();
+        jobItem.setId(job.getId());
+        jobItem.setStatus(jobStatus(job));
+
+        Customer customer = job.getCustomer();
+        jobItem.setCustomerType(customer.getCustomerType());
+        jobItem.setCustomerFirstName(customer.getFirstName());
+        jobItem.setCustomerLastName(customer.getLastName());
+        jobItem.setCustomerBusiness(customer.getBusiness());
+
+        if(optionalVehicleResponse.isPresent()) {
+            VehicleResponse vehicle = optionalVehicleResponse.get();
+            jobItem.setVehicleYear(vehicle.getYear());
+            jobItem.setVehicleMake(vehicle.getMake());
+            jobItem.setVehicleModel(vehicle.getModel());
+            jobItem.setVehicleTrim(vehicle.getTrim());
+        }
+
+        List<User> employees = job.getEmployees();
+        employees.forEach(employee -> {
+            String firstName = employee.getFirstName();
+            String lastName = employee.getLastName();
+            jobItem.getAssignedEmployees().add(firstName + " " + lastName);
+        });
+        return jobItem;
+    }
+
+    private JobDetailsResponse mapJobToJobDetailsResponse(Job job) {
         TimezoneConverter timezoneConverter = new TimezoneConverter.TimezoneConverterBuilder("America/Chicago").build();
 
-        JobResponse jobResponse = new JobResponse();
+        JobDetailsResponse jobDetailsResponse = new JobDetailsResponse();
 
         CustomerResponse customerResponse = customerService.mapCustomerToResponse(job.getCustomer());
-        jobResponse.setCustomer(customerResponse);
+        jobDetailsResponse.setCustomer(customerResponse);
 
         VehicleResponse vehicleResponse = vehicleService.mapVehicleToResponse(job.getVehicle());
-        jobResponse.setVehicle(vehicleResponse);
+        jobDetailsResponse.setVehicle(vehicleResponse);
 
         List<EmployeeResponse> employeeList = employeeService.mapEmployeeListToResponseList(job.getEmployees());
-        jobResponse.setEmployees(employeeList);
+        jobDetailsResponse.setEmployees(employeeList);
 
         List<ReconditionServiceResponse> reconditionList = reconditionService.mapReconditionListToResponseList(job.getReconditioningServices());
-        jobResponse.setServices(reconditionList);
+        jobDetailsResponse.setServices(reconditionList);
 
-        jobResponse.setId(job.getId());
-        jobResponse.setStatus(jobStatus(job));
-        jobResponse.setEmployeeNotes(job.getEmployeeNotes());
-        jobResponse.setManagerNotes(job.getManagerNotes());
+        jobDetailsResponse.setId(job.getId());
+        jobDetailsResponse.setStatus(jobStatus(job));
+        jobDetailsResponse.setEmployeeNotes(job.getEmployeeNotes());
+        jobDetailsResponse.setManagerNotes(job.getManagerNotes());
 
-        if(job.getJobStartedAt() != null) jobResponse.setJobStartedAt(timezoneConverter.fromUtcToLocalDateTime(job.getJobStartedAt()));
-        if(job.getJobPausedAt() != null) jobResponse.setJobPausedAt(job.getJobPausedAt().withZoneSameInstant(zoneId).toLocalDateTime());
-        if(job.getJobEndedAt() != null) jobResponse.setJobEndedAt(job.getJobEndedAt().withZoneSameInstant(zoneId).toLocalDateTime());
+        if(job.getJobStartedAt() != null) jobDetailsResponse.setJobStartedAt(timezoneConverter.fromUtcToLocalDateTime(job.getJobStartedAt()));
+        if(job.getJobPausedAt() != null) jobDetailsResponse.setJobPausedAt(job.getJobPausedAt().withZoneSameInstant(zoneId).toLocalDateTime());
+        if(job.getJobEndedAt() != null) jobDetailsResponse.setJobEndedAt(job.getJobEndedAt().withZoneSameInstant(zoneId).toLocalDateTime());
 
-        jobResponse.setCreatedAt(job.getCreatedAt());
-        jobResponse.setUpdatedAt(job.getUpdatedAt());
+        jobDetailsResponse.setCreatedAt(job.getCreatedAt());
+        jobDetailsResponse.setUpdatedAt(job.getUpdatedAt());
 
 
-        return jobResponse;
+        return jobDetailsResponse;
     }
 }

@@ -1,10 +1,10 @@
 package com.webbdealer.detailing.job;
 
 import com.webbdealer.detailing.job.dao.Job;
-import com.webbdealer.detailing.job.dao.JobStatus;
 import com.webbdealer.detailing.job.dto.JobActionRequest;
 import com.webbdealer.detailing.job.dto.JobCreateForm;
-import com.webbdealer.detailing.job.dto.JobResponse;
+import com.webbdealer.detailing.job.dto.JobDetailsResponse;
+import com.webbdealer.detailing.job.dto.JobItemResponse;
 import com.webbdealer.detailing.security.JwtClaim;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,11 +15,9 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
-import java.security.Principal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 @RestController
 @RequestMapping("/jobs")
@@ -58,7 +56,7 @@ public class JobController {
 
         JwtClaim userDetails = (JwtClaim) auth.getPrincipal();
 
-        List<JobResponse> jobs;
+        List<JobItemResponse> jobs;
 
         if(status == null) {
             jobs = jobService.fetchAllJobs(userDetails.getCompanyId());
