@@ -5,6 +5,7 @@ import com.webbdealer.detailing.employee.dao.User;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.Objects;
 
 @Entity
@@ -17,7 +18,7 @@ public class TimeClock {
     private Long id;
 
     @Column(name = "clocked_at", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
-    private LocalDateTime clockedAt;
+    private ZonedDateTime clockedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "clocked_reason_id", nullable = false)
@@ -34,6 +35,22 @@ public class TimeClock {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    public TimeClock() {}
+
+    public TimeClock(
+            ZonedDateTime clockedAt,
+            ClockedReason clockedReason,
+            String employeeNote,
+            ClockedStatus clockedStatus,
+            User user) {
+
+        this.clockedAt = clockedAt;
+        this.clockedReason = clockedReason;
+        this.employeeNote = employeeNote;
+        this.clockedStatus = clockedStatus;
+        this.user = user;
+    }
+
     public Long getId() {
         return id;
     }
@@ -42,11 +59,11 @@ public class TimeClock {
         this.id = id;
     }
 
-    public LocalDateTime getClockedAt() {
+    public ZonedDateTime getClockedAt() {
         return clockedAt;
     }
 
-    public void setClockedAt(LocalDateTime clockedAt) {
+    public void setClockedAt(ZonedDateTime clockedAt) {
         this.clockedAt = clockedAt;
     }
 

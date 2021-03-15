@@ -2,7 +2,7 @@ package com.webbdealer.detailing.job;
 
 import com.webbdealer.detailing.job.dao.Job;
 import com.webbdealer.detailing.job.dto.JobActionRequest;
-import com.webbdealer.detailing.job.dto.JobCreateForm;
+import com.webbdealer.detailing.job.dto.CreateJobRequest;
 import com.webbdealer.detailing.job.dto.JobDetailsResponse;
 import com.webbdealer.detailing.job.dto.JobItemResponse;
 import com.webbdealer.detailing.security.JwtClaim;
@@ -33,7 +33,7 @@ public class JobController {
     }
 
     @PostMapping("")
-    public ResponseEntity<?> createJob(@RequestBody JobCreateForm jobCreateForm) {
+    public ResponseEntity<?> createJob(@RequestBody CreateJobRequest createJobRequest) {
         // 1. All form data will be submitted at once.
 
         SecurityContext context = SecurityContextHolder.getContext();
@@ -41,9 +41,9 @@ public class JobController {
 
         JwtClaim userDetails = (JwtClaim) auth.getPrincipal();
 
-        Job job = jobService.storeJobFromRequest(userDetails.getCompanyId(), jobCreateForm);
+        Job job = jobService.storeJobFromRequest(userDetails.getCompanyId(), createJobRequest);
 
-        System.out.println(jobCreateForm.toString());
+        System.out.println(createJobRequest.toString());
 
         return ResponseEntity.ok("Okay");
     }
@@ -76,6 +76,16 @@ public class JobController {
         logger.info(jobs.toString());
 
         return ResponseEntity.ok(jobs);
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<JobDetailsResponse> viewJobDetails(@PathVariable Long id) {
+        SecurityContext context = SecurityContextHolder.getContext();
+        Authentication auth = context.getAuthentication();
+
+        JwtClaim userDetails = (JwtClaim) auth.getPrincipal();
+
+        return ResponseEntity.ok(jobService.fetchJobDetails(userDetails.getCompanyId(), id));
     }
 
     @PatchMapping("/{id}")

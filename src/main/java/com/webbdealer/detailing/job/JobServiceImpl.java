@@ -12,14 +12,13 @@ import com.webbdealer.detailing.employee.dto.EmployeeResponse;
 import com.webbdealer.detailing.job.dao.Job;
 import com.webbdealer.detailing.job.dao.JobRepository;
 import com.webbdealer.detailing.job.dao.JobStatus;
-import com.webbdealer.detailing.job.dto.JobCreateForm;
+import com.webbdealer.detailing.job.dto.CreateJobRequest;
 import com.webbdealer.detailing.job.dto.JobItemResponse;
 import com.webbdealer.detailing.job.dto.JobDetailsResponse;
 import com.webbdealer.detailing.recondition.ReconditionService;
 import com.webbdealer.detailing.recondition.dao.Recondition;
 import com.webbdealer.detailing.recondition.dto.ReconditionServiceResponse;
 import com.webbdealer.detailing.shared.TimezoneConverter;
-import com.webbdealer.detailing.vehicle.CatalogVehicleResponse;
 import com.webbdealer.detailing.vehicle.VehicleLookupService;
 import com.webbdealer.detailing.vehicle.VehicleService;
 import com.webbdealer.detailing.vehicle.dao.Vehicle;
@@ -27,13 +26,18 @@ import com.webbdealer.detailing.vehicle.dto.VehicleResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityNotFoundException;
 import javax.transaction.Transactional;
+import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.temporal.ChronoField;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.Temporal;
+import java.time.temporal.TemporalField;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -115,17 +119,46 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
+    public JobDetailsResponse fetchJobDetails(Long companyId, Long jobId) {
+        Optional<Job> optionalJob = jobRepository.findByCompanyIdAndId(companyId, jobId);
+        Job job = optionalJob.orElseThrow(() -> new EntityNotFoundException("Job with id of ["+jobId+"] not found!"));
+        return mapJobToJobDetailsResponse(companyId, job);
+    }
+
+    @Override
+    public Duration jobTotalTime(Long jobId) {
+        Optional<Job> optionalJob = jobRepository.findById(jobId);
+        Job job = optionalJob.orElseThrow(() -> new EntityNotFoundException("Job with id of ["+jobId+"] not found!"));
+
+        Optional<LocalDateTime> optionalStartedAt = Optional.empty();
+        Optional<LocalDateTime> optionalPausedAt = Optional.empty();
+        Optional<LocalDateTime> optionalEndedAt = Optional.empty();
+
+        if(job.getJobStartedAt() != null) optionalStartedAt = Optional.of(job.getJobStartedAt().toLocalDateTime());
+        if(job.getJobPausedAt() != null) optionalPausedAt = Optional.of(job.getJobPausedAt().toLocalDateTime());
+        if(job.getJobEndedAt() != null) optionalEndedAt = Optional.of(job.getJobEndedAt().toLocalDateTime());
+
+        LocalDateTime startedAt = optionalStartedAt.orElseThrow();
+//        LocalDateTime pausedAt = optionalPausedAt.orElseThrow();
+        LocalDateTime endedAt = optionalEndedAt.orElseThrow();
+
+        long diff = ChronoUnit.MINUTES.between(startedAt, endedAt);
+        logger.info("difference in minutes: " + diff);
+        return Duration.ZERO;
+    }
+
+    @Override
     @Transactional
-    public Job storeJobFromRequest(Long companyId, JobCreateForm jobCreateForm) {
+    public Job storeJobFromRequest(Long companyId, CreateJobRequest createJobRequest) {
 
         Job job = new Job();
 
         // This can only be created by a manager
         // 1. Store vehicle
-        Long vehicleId = jobCreateForm.getVehicle().getId();
+        Long vehicleId = createJobRequest.getVehicle().getId();
         Vehicle vehicle;
         if(vehicleId == null) {
-            vehicle = vehicleService.fetchOrCreateVehicleFromRequest(companyId, jobCreateForm.getVehicle());
+            vehicle = vehicleService.fetchOrCreateVehicleFromRequest(companyId, createJobRequest.getVehicle());
         }
         else {
             vehicle = vehicleService.fetchByIdReference(vehicleId);
@@ -136,7 +169,7 @@ public class JobServiceImpl implements JobService {
         // 2. Store customer, if customer doesn't exist
         // otherwise attach customer to this job
         // If customerId == null, then create a new customer
-        CustomerCreateForm customerForm = jobCreateForm.getCustomer();
+        CustomerCreateForm customerForm = createJobRequest.getCustomer();
         Long customerId = customerForm.getId();
 
         Customer customer;
@@ -149,7 +182,7 @@ public class JobServiceImpl implements JobService {
         job.setCustomer(customer);
 
         // 3. Attach services to this job
-        List<Long> serviceIdsList = jobCreateForm.getServiceIds();
+        List<Long> serviceIdsList = createJobRequest.getServiceIds();
         serviceIdsList.forEach(id -> {
             Recondition recondition = reconditionService.fetchByIdReference(id);
             recondition.getJobs().add(job);
@@ -160,11 +193,11 @@ public class JobServiceImpl implements JobService {
 
 
 //        job.setJobStartedAt(LocalDateTime.now());
-        String managerNotes = jobCreateForm.getManagerNotes();
+        String managerNotes = createJobRequest.getManagerNotes();
         logger.info(managerNotes);
         job.setManagerNotes(managerNotes);
 
-        reconditionService.attachReconServicesToJob(jobCreateForm.getServiceIds(), job);
+        reconditionService.attachReconServicesToJob(createJobRequest.getServiceIds(), job);
         companyService.attachJobToCompany(job, companyId);
 
         return jobRepository.save(job);
@@ -295,7 +328,7 @@ public class JobServiceImpl implements JobService {
         return jobItem;
     }
 
-    private JobDetailsResponse mapJobToJobDetailsResponse(Job job) {
+    private JobDetailsResponse mapJobToJobDetailsResponse(Long companyId, Job job) {
         TimezoneConverter timezoneConverter = new TimezoneConverter.TimezoneConverterBuilder("America/Chicago").build();
 
         JobDetailsResponse jobDetailsResponse = new JobDetailsResponse();
@@ -303,7 +336,7 @@ public class JobServiceImpl implements JobService {
         CustomerResponse customerResponse = customerService.mapCustomerToResponse(job.getCustomer());
         jobDetailsResponse.setCustomer(customerResponse);
 
-        VehicleResponse vehicleResponse = vehicleService.mapVehicleToResponse(job.getVehicle());
+        VehicleResponse vehicleResponse = vehicleService.mapVehicleToResponse(companyId, job.getVehicle());
         jobDetailsResponse.setVehicle(vehicleResponse);
 
         List<EmployeeResponse> employeeList = employeeService.mapEmployeeListToResponseList(job.getEmployees());

@@ -3,7 +3,6 @@ package com.webbdealer.detailing.job.dto;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.webbdealer.detailing.customer.dto.CustomerCreateForm;
 import com.webbdealer.detailing.employee.dto.EmployeeCreateForm;
-import com.webbdealer.detailing.recondition.dto.ReconditionCreateForm;
 import com.webbdealer.detailing.vehicle.dto.VehicleCreateForm;
 
 import java.io.Serializable;
@@ -11,7 +10,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Objects;
 
-public class JobCreateForm implements Serializable {
+public class CreateJobRequest implements Serializable {
 
     private Long id;
 
@@ -130,7 +129,7 @@ public class JobCreateForm implements Serializable {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        JobCreateForm that = (JobCreateForm) o;
+        CreateJobRequest that = (CreateJobRequest) o;
         return jobEnded == that.jobEnded && Objects.equals(id, that.id) && Objects.equals(customer, that.customer) && Objects.equals(employee, that.employee) && Objects.equals(serviceIds, that.serviceIds) && Objects.equals(vehicle, that.vehicle) && Objects.equals(jobStartedAt, that.jobStartedAt) && Objects.equals(jobPausedAt, that.jobPausedAt) && Objects.equals(jobEndedAt, that.jobEndedAt) && Objects.equals(managerNotes, that.managerNotes) && Objects.equals(employeeNotes, that.employeeNotes);
     }
 

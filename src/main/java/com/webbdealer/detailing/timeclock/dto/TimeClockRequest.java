@@ -1,8 +1,11 @@
 package com.webbdealer.detailing.timeclock.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.webbdealer.detailing.timeclock.dao.ClockedStatus;
 
 import java.io.Serializable;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.Objects;
 
 public class TimeClockRequest implements Serializable {
@@ -13,9 +16,11 @@ public class TimeClockRequest implements Serializable {
 
     private ClockedStatus clockedStatus;
 
-    private String clockedAtDate;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "MM/dd/yyyy")
+    private LocalDate clockedAtDate;
 
-    private String clockedAtTime;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "hh:mm a")
+    private LocalTime clockedAtTime;
 
     private String employeeNote;
 
@@ -43,19 +48,19 @@ public class TimeClockRequest implements Serializable {
         this.clockedStatus = clockedStatus;
     }
 
-    public String getClockedAtDate() {
+    public LocalDate getClockedAtDate() {
         return clockedAtDate;
     }
 
-    public void setClockedAtDate(String clockedAtDate) {
+    public void setClockedAtDate(LocalDate clockedAtDate) {
         this.clockedAtDate = clockedAtDate;
     }
 
-    public String getClockedAtTime() {
+    public LocalTime getClockedAtTime() {
         return clockedAtTime;
     }
 
-    public void setClockedAtTime(String clockedAtTime) {
+    public void setClockedAtTime(LocalTime clockedAtTime) {
         this.clockedAtTime = clockedAtTime;
     }
 

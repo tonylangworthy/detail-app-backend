@@ -24,4 +24,9 @@ public interface TimeClockRepository extends JpaRepository<TimeClock, Long> {
             "where DATE(t.clocked_at) = ?1",
             nativeQuery = true)
     List<TimeClock> findByClockedAt(LocalDate clockedAt);
+
+    @Query(value = "select * from timeclock t inner join clocked_reasons on t.clocked_reason_id = clocked_reasons.id " +
+            "where user_id = ?1 and DATE(t.clocked_at) = ?2",
+            nativeQuery = true)
+    List<TimeClock> findByUserIdAndClockedDate(Long userId, LocalDate clockedDate);
 }

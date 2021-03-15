@@ -3,6 +3,7 @@ package com.webbdealer.detailing.timeclock;
 import com.webbdealer.detailing.employee.dao.User;
 import com.webbdealer.detailing.employee.dao.UserRepository;
 import com.webbdealer.detailing.employee.dto.EmployeeResponse;
+import com.webbdealer.detailing.shared.TimezoneConverter;
 import com.webbdealer.detailing.timeclock.dao.*;
 import com.webbdealer.detailing.timeclock.dto.ClockedEmployeeStatusResponse;
 import com.webbdealer.detailing.timeclock.dto.TimeClockRequest;
@@ -42,18 +43,18 @@ public class TimeClockServiceImpl implements TimeClockService {
 
     @Override
     public void punchTimeClock(Long userId, TimeClockRequest timeClockRequest) {
+        TimezoneConverter timezoneConverter
+                = new TimezoneConverter.TimezoneConverterBuilder("America/Chicago").build();
         User user = userRepository.getOne(userId);
         ClockedReason clockedReason = clockedReasonRepository.getOne(timeClockRequest.getClockedReasonId());
 
         TimeClock timeClock = new TimeClock();
         timeClock.setUser(user);
         timeClock.setClockedReason(clockedReason);
-        if(timeClockRequest.getClockedAtDate() == null && timeClockRequest.getClockedAtTime() == null) {
-            timeClock.setClockedAt(LocalDateTime.now());
-        }
-//        else {
-//            timeClock.setClockedAt(LocalDateTime.parse());
-//        }
+
+        LocalDateTime clockedAt = LocalDateTime.of(timeClockRequest.getClockedAtDate(), timeClockRequest.getClockedAtTime());
+        timeClock.setClockedAt(timezoneConverter.fromLocalDateTimeToUtc(clockedAt));
+
         timeClock.setClockedStatus(timeClockRequest.getClockedStatus());
         TimeClock newClockedTime = timeClockRepository.save(timeClock);
         logger.info(newClockedTime.toString());
@@ -137,9 +138,11 @@ public class TimeClockServiceImpl implements TimeClockService {
     }
 
     private ClockedEmployeeStatusResponse mapTimeClockToClockedEmployee(TimeClock timeClock) {
+        TimezoneConverter timezoneConverter
+                = new TimezoneConverter.TimezoneConverterBuilder("America/Chicago").build();
         ClockedEmployeeStatusResponse clockedEmployee = new ClockedEmployeeStatusResponse();
         clockedEmployee.setId(timeClock.getId());
-        clockedEmployee.setClockedAt(timeClock.getClockedAt());
+        clockedEmployee.setClockedAt(timezoneConverter.fromUtcToLocalDateTime(timeClock.getClockedAt()));
         clockedEmployee.setClockedReason(timeClock.getClockedReason().getName());
         clockedEmployee.setClockedStatus(timeClock.getClockedStatus());
         clockedEmployee.setEmployeeNote(timeClock.getEmployeeNote());

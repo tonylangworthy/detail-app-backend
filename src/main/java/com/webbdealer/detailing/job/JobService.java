@@ -2,9 +2,11 @@ package com.webbdealer.detailing.job;
 
 import com.webbdealer.detailing.job.dao.Job;
 import com.webbdealer.detailing.job.dao.JobStatus;
-import com.webbdealer.detailing.job.dto.JobCreateForm;
+import com.webbdealer.detailing.job.dto.CreateJobRequest;
+import com.webbdealer.detailing.job.dto.JobDetailsResponse;
 import com.webbdealer.detailing.job.dto.JobItemResponse;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -22,7 +24,11 @@ public interface JobService {
 
     List<JobItemResponse> fetchCompletedJobs(Long companyId);
 
-    Job storeJobFromRequest(Long companyId, JobCreateForm jobCreateForm);
+    JobDetailsResponse fetchJobDetails(Long companyId, Long jobId);
+
+    Duration jobTotalTime(Long jobId);
+
+    Job storeJobFromRequest(Long companyId, CreateJobRequest createJobRequest);
 
     Job storeJob(Long companyId, Job job);
 

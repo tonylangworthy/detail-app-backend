@@ -32,5 +32,5 @@ public interface VehicleService {
 
     Vehicle attachVehicleToJob(Long vehicleId, Job job);
 
-    VehicleResponse mapVehicleToResponse(Vehicle vehicle);
+    VehicleResponse mapVehicleToResponse(Long companyId, Vehicle vehicle);
 }

@@ -161,14 +161,16 @@ public class VehicleServiceImpl implements VehicleService {
     }
 
     @Override
-    public VehicleResponse mapVehicleToResponse(Vehicle vehicle) {
-        VehicleResponse vehicleResponse = new VehicleResponse();
+    public VehicleResponse mapVehicleToResponse(Long companyId, Vehicle vehicle) {
+        List<VehicleResponse> vehicleList = fetchVehiclesByCatalogIdList(companyId, Arrays.asList(vehicle.getCatalogId()));
+
+        Optional<VehicleResponse> optionalVehicleResponse = Optional.empty();
+        if(vehicleList.size() == 1) {
+            optionalVehicleResponse = Optional.of(vehicleList.get(0));
+        }
+        VehicleResponse vehicleResponse = optionalVehicleResponse.orElseThrow();
         vehicleResponse.setId(vehicle.getId());
         vehicleResponse.setVin(vehicle.getVin());
-//        vehicleResponse.setYear(vehicle.getYear());
-//        vehicleResponse.setMake(vehicle.getMake().getName());
-//        vehicleResponse.setModel(vehicle.getModel().getName());
-//        vehicleResponse.setTrim(vehicle.getTrim().getName());
         vehicleResponse.setCreatedAt(vehicle.getCreatedAt());
         vehicleResponse.setUpdatedAt(vehicle.getUpdatedAt());
         return vehicleResponse;
