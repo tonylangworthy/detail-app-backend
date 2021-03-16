@@ -12,13 +12,11 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 
 import javax.transaction.Transactional;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
+import java.time.*;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -75,7 +73,7 @@ public class TimeClockRepositoryIntegrationTests {
                 ClockedStatus.IN,
                 user1
         );
-        timeClockRepository.save(mondayIn);
+//        timeClockRepository.save(mondayIn);
 
         TimeClock mondayOutLunch = new TimeClock(
                 timezoneConverter.fromLocalDateTimeToUtc(LocalDateTime.parse("03/08/2021 11:33 AM", formatter)),
@@ -84,7 +82,7 @@ public class TimeClockRepositoryIntegrationTests {
                 ClockedStatus.OUT,
                 user1
         );
-        timeClockRepository.save(mondayOutLunch);
+//        timeClockRepository.save(mondayOutLunch);
 
         TimeClock mondayInLunch = new TimeClock(
                 timezoneConverter.fromLocalDateTimeToUtc(LocalDateTime.parse("03/08/2021 12:07 PM", formatter)),
@@ -93,7 +91,7 @@ public class TimeClockRepositoryIntegrationTests {
                 ClockedStatus.IN,
                 user1
         );
-        timeClockRepository.save(mondayInLunch);
+//        timeClockRepository.save(mondayInLunch);
 
         TimeClock mondayOut = new TimeClock(
                 timezoneConverter.fromLocalDateTimeToUtc(LocalDateTime.parse("03/08/2021 05:04 PM", formatter)),
@@ -102,7 +100,7 @@ public class TimeClockRepositoryIntegrationTests {
                 ClockedStatus.OUT,
                 user1
         );
-        timeClockRepository.save(mondayOut);
+//        timeClockRepository.save(mondayOut);
 
         TimeClock mondayIn1 = new TimeClock(
                 timezoneConverter.fromLocalDateTimeToUtc(LocalDateTime.parse("03/08/2021 06:10 AM", formatter)),
@@ -111,7 +109,7 @@ public class TimeClockRepositoryIntegrationTests {
                 ClockedStatus.IN,
                 user2
         );
-        timeClockRepository.save(mondayIn1);
+//        timeClockRepository.save(mondayIn1);
 
         TimeClock mondayOutLunch1 = new TimeClock(
                 timezoneConverter.fromLocalDateTimeToUtc(LocalDateTime.parse("03/08/2021 11:24 AM", formatter)),
@@ -120,7 +118,7 @@ public class TimeClockRepositoryIntegrationTests {
                 ClockedStatus.OUT,
                 user2
         );
-        timeClockRepository.save(mondayOutLunch1);
+//        timeClockRepository.save(mondayOutLunch1);
 
         TimeClock mondayInLunch1= new TimeClock(
                 timezoneConverter.fromLocalDateTimeToUtc(LocalDateTime.parse("03/08/2021 11:58 PM", formatter)),
@@ -129,7 +127,7 @@ public class TimeClockRepositoryIntegrationTests {
                 ClockedStatus.IN,
                 user2
         );
-        timeClockRepository.save(mondayInLunch1);
+//        timeClockRepository.save(mondayInLunch1);
 
         TimeClock mondayOut1 = new TimeClock(
                 timezoneConverter.fromLocalDateTimeToUtc(LocalDateTime.parse("03/08/2021 05:58 PM", formatter)),
@@ -138,25 +136,17 @@ public class TimeClockRepositoryIntegrationTests {
                 ClockedStatus.OUT,
                 user2
         );
-        timeClockRepository.save(mondayOut1);
+//        timeClockRepository.save(mondayOut1);
 
         List<TimeClock> user1Time = timeClockRepository.findByUserIdAndClockedDate(user1.getId(), LocalDate.of(2021, 03, 8));
         List<TimeClock> user2Time = timeClockRepository.findByUserIdAndClockedDate(user1.getId(), LocalDate.of(2021, 03, 8));
 
-        user1Time.stream()
-                .filter(timeClock -> timeClock.getClockedStatus().equals(ClockedStatus.IN))
-                .map(timeClock -> timeClock.getClockedAt())
-                .findFirst();
+        List<LocalTime> user1TimeList = user1Time.stream()
+                .map(timeClock -> timeClock.getClockedAt().toLocalDateTime().toLocalTime())
+                .collect(Collectors.toList());
 
-//        user1Time.forEach(timeClock -> {
-//
-//            if(timeClock.getClockedStatus().equals(ClockedStatus.IN)) {
-//                ZonedDateTime punchIn = timeClock.getClockedAt();
-//            }
-//            else {
-//                ZonedDateTime punchOut = timeClock.getClockedAt();
-//            }
-//        });
+        System.out.println(user1TimeList.toString());
+
 
         System.out.println(user1Time.size());
         System.out.println(user2Time.size());
