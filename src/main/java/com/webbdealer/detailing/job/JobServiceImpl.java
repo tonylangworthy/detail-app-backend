@@ -40,6 +40,7 @@ import java.time.temporal.Temporal;
 import java.time.temporal.TemporalField;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -134,9 +135,9 @@ public class JobServiceImpl implements JobService {
         Optional<LocalDateTime> optionalPausedAt = Optional.empty();
         Optional<LocalDateTime> optionalEndedAt = Optional.empty();
 
-        if(job.getJobStartedAt() != null) optionalStartedAt = Optional.of(job.getJobStartedAt().toLocalDateTime());
-        if(job.getJobPausedAt() != null) optionalPausedAt = Optional.of(job.getJobPausedAt().toLocalDateTime());
-        if(job.getJobEndedAt() != null) optionalEndedAt = Optional.of(job.getJobEndedAt().toLocalDateTime());
+        if(Objects.nonNull(job.getJobStartedAt())) optionalStartedAt = Optional.of(job.getJobStartedAt().toLocalDateTime());
+        if(Objects.nonNull(job.getJobPausedAt())) optionalPausedAt = Optional.of(job.getJobPausedAt().toLocalDateTime());
+        if(Objects.nonNull(job.getJobEndedAt())) optionalEndedAt = Optional.of(job.getJobEndedAt().toLocalDateTime());
 
         LocalDateTime startedAt = optionalStartedAt.orElseThrow();
 //        LocalDateTime pausedAt = optionalPausedAt.orElseThrow();
