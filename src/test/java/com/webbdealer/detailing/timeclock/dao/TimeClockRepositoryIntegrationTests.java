@@ -14,7 +14,11 @@ import org.springframework.test.context.ContextConfiguration;
 import javax.transaction.Transactional;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalUnit;
+import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -146,6 +150,51 @@ public class TimeClockRepositoryIntegrationTests {
                 .collect(Collectors.toList());
 
         System.out.println(user1TimeList.toString());
+
+//        if((user1TimeList.size() % 2) == 0) {
+//            System.out.println("List is even");
+
+            ListIterator<TimeClock> listIterator = user1Time.listIterator();
+
+            while(listIterator.hasNext()) {
+                System.out.println("current index: "+ listIterator.previousIndex() +" -- next index: " + listIterator.nextIndex());
+
+                TimeClock timeClockIn = listIterator.next();
+                System.out.println("clocked in: " + timeClockIn.getClockedAt().toString());
+
+                if(listIterator.hasNext()) {
+                    TimeClock timeClockOut = listIterator.next();
+                    System.out.println("clocked out: " + timeClockOut.getClockedAt().toString());
+
+                Optional<LocalTime> optionalClockedInAt = Optional.empty();
+                Optional<LocalTime> optionalClockedOutAt = Optional.empty();
+
+                if(timeClockIn.getClockedStatus().equals(ClockedStatus.IN)) {
+                    optionalClockedInAt = Optional.of(timeClockIn.getClockedAt().toLocalDateTime().toLocalTime());
+                }
+                if(timeClockOut.getClockedStatus().equals(ClockedStatus.OUT)) {
+                    optionalClockedOutAt = Optional.of(timeClockOut.getClockedAt().toLocalDateTime().toLocalTime());
+                }
+
+                if(optionalClockedInAt.isPresent() && optionalClockedOutAt.isPresent()) {
+                    LocalTime clockedInAt = optionalClockedInAt.get();
+                    LocalTime clockedOutAt = optionalClockedOutAt.get();
+
+                    System.out.println("Is after: " + clockedOutAt.isAfter(clockedInAt));
+
+                    System.out.println("until: " + clockedInAt.until(clockedOutAt, ChronoUnit.MINUTES));
+                    int hours = Duration.between(clockedInAt, clockedOutAt).toHoursPart();
+                    int minutes = Duration.between(clockedInAt, clockedOutAt).toMinutesPart();
+                    System.out.println(hours + " hours, " + minutes + " minutes");
+
+                }
+
+                }
+
+
+            }
+
+//        }
 
 
         System.out.println(user1Time.size());
