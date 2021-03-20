@@ -49,8 +49,6 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
             User user = new ObjectMapper().readValue(request.getInputStream(), User.class);
             logger.info("User from Request Input Stream: "+ user.toString());
 
-
-
             return authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             user.getEmail(),
@@ -95,6 +93,7 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         claims.put("lastname", user.getLastName());
         claims.put("roles", roles);
         claims.put("privileges", privileges);
+        System.out.println(roles.toString());
 
         String token = Jwts.builder()
                 .setClaims(claims)
@@ -111,6 +110,16 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 //                .sign(Algorithm.HMAC512(SECRET.getBytes()));
 
         response.addHeader(HEADER_STRING, TOKEN_PREFIX + token);
+        response.addHeader(CONTENT_TYPE, CONTENT_TYPE_VALUE);
+
+        String role;
+        if(roles.contains("ROLE_MANAGER")) {
+            role = "manager";
+        }
+        else {
+            role = "employee";
+        }
+        response.getWriter().write("{\"role\": \""+role+"\"}");
 
     }
 }
