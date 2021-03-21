@@ -25,6 +25,8 @@ public interface EmployeeService {
 
     User assignJobsToEmployee(Long companyId, List<Job> jobs, User user);
 
+    EmployeeResponse fetchEmployeeDetails(Long userId);
+
     List<User> fetchEmployees();
 
     List<EmployeeResponse> mapEmployeeListToResponseList(List<User> users);

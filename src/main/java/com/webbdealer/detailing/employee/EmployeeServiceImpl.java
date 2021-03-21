@@ -15,6 +15,7 @@ import javax.persistence.EntityNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class EmployeeServiceImpl implements EmployeeService {
@@ -74,6 +75,13 @@ public class EmployeeServiceImpl implements EmployeeService {
     }
 
     @Override
+    public EmployeeResponse fetchEmployeeDetails(Long userId) {
+        Optional<User> optionalUser = fetchById(userId);
+        User user = optionalUser.orElseThrow(() -> new EntityNotFoundException("User with id of ["+userId+"] not found!"));
+        return mapEmployeeToResponse(user);
+    }
+
+    @Override
     public List<User> fetchEmployees() {
         return userRepository.findAll();
     }
@@ -98,8 +106,12 @@ public class EmployeeServiceImpl implements EmployeeService {
         employeeResponse.setEmail(user.getEmail());
         employeeResponse.setPhone(user.getPhone());
         employeeResponse.setMobile(user.getIsMobile());
-        employeeResponse.setCreatedAt(user.getCreatedAt().toString());
-//        employeeResponse.setUpdatedAt(user.getUpdatedAt().toString());
+        employeeResponse.setRoles(
+                user.getRoles().stream()
+                        .map(role -> role.getName()).collect(Collectors.toList())
+        );
+        employeeResponse.setCreatedAt(user.getCreatedAt());
+        employeeResponse.setUpdatedAt(user.getUpdatedAt());
         return employeeResponse;
     }
 }

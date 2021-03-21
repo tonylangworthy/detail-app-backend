@@ -1,6 +1,9 @@
 package com.webbdealer.detailing.employee.dto;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Objects;
 
 public class EmployeeResponse implements Serializable {
 
@@ -18,9 +21,11 @@ public class EmployeeResponse implements Serializable {
 
     private boolean isMobile;
 
-    private String createdAt;
+    private List<String> roles;
 
-    private String updatedAt;
+    private LocalDateTime createdAt;
+
+    private LocalDateTime updatedAt;
 
     public Long getId() {
         return id;
@@ -78,19 +83,56 @@ public class EmployeeResponse implements Serializable {
         isMobile = mobile;
     }
 
-    public String getCreatedAt() {
+    public List<String> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(List<String> roles) {
+        this.roles = roles;
+    }
+
+    public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(String createdAt) {
+    public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
 
-    public String getUpdatedAt() {
+    public LocalDateTime getUpdatedAt() {
         return updatedAt;
     }
 
-    public void setUpdatedAt(String updatedAt) {
+    public void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        EmployeeResponse that = (EmployeeResponse) o;
+        return isMobile == that.isMobile && Objects.equals(id, that.id) && Objects.equals(firstName, that.firstName) && Objects.equals(middle, that.middle) && Objects.equals(lastName, that.lastName) && Objects.equals(email, that.email) && Objects.equals(phone, that.phone) && Objects.equals(roles, that.roles) && Objects.equals(createdAt, that.createdAt) && Objects.equals(updatedAt, that.updatedAt);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, firstName, middle, lastName, email, phone, isMobile, roles, createdAt, updatedAt);
+    }
+
+    @Override
+    public String toString() {
+        return "EmployeeResponse{" +
+                "id=" + id +
+                ", firstName='" + firstName + '\'' +
+                ", middle='" + middle + '\'' +
+                ", lastName='" + lastName + '\'' +
+                ", email='" + email + '\'' +
+                ", phone='" + phone + '\'' +
+                ", isMobile=" + isMobile +
+                ", roles=" + roles +
+                ", createdAt='" + createdAt + '\'' +
+                ", updatedAt='" + updatedAt + '\'' +
+                '}';
     }
 }

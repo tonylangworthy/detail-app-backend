@@ -25,6 +25,16 @@ public class EmployeeController {
         return ResponseEntity.ok("hello user!");
     }
 
+    @GetMapping("/authenticated")
+    public ResponseEntity<?> userDetails() {
+        SecurityContext context = SecurityContextHolder.getContext();
+        Authentication auth = context.getAuthentication();
+
+        JwtClaim userDetails = (JwtClaim) auth.getPrincipal();
+
+        return ResponseEntity.ok(employeeService.fetchEmployeeDetails(userDetails.getUserId()));
+    }
+
     @GetMapping("")
     public ResponseEntity<?> employees() {
         return ResponseEntity.ok(employeeService.fetchEmployees());

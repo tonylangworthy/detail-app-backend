@@ -1,5 +1,6 @@
 package com.webbdealer.detailing.security;
 
+import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.webbdealer.detailing.employee.dao.User;
 import io.jsonwebtoken.Claims;
@@ -24,6 +25,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.time.Instant;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.webbdealer.detailing.security.SecurityConstants.*;
 
@@ -93,7 +95,6 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         claims.put("lastname", user.getLastName());
         claims.put("roles", roles);
         claims.put("privileges", privileges);
-        System.out.println(roles.toString());
 
         String token = Jwts.builder()
                 .setClaims(claims)
@@ -112,14 +113,17 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         response.addHeader(HEADER_STRING, TOKEN_PREFIX + token);
         response.addHeader(CONTENT_TYPE, CONTENT_TYPE_VALUE);
 
-        String role;
-        if(roles.contains("ROLE_MANAGER")) {
-            role = "manager";
-        }
-        else {
-            role = "employee";
-        }
-        response.getWriter().write("{\"role\": \""+role+"\"}");
+        StringJoiner sj = new StringJoiner(", ", "\"", "\"");
+        List<String> testRoles = new ArrayList<>();
+        testRoles.add("ROLE_ADMIN");
+        testRoles.add("ROLE_MANAGER");
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        String roleList = objectMapper.writeValueAsString(roles);
+
+//        String roleList = testRoles.stream().collect(Collectors.joining(", ", "\"", "\""));
+//        String roleList = String.join(", ", roles);
+        response.getWriter().write("{\"roles\": "+roleList+"}");
 
     }
 }
