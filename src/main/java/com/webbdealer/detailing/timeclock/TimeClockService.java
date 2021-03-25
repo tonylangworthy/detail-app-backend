@@ -10,6 +10,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.Temporal;
+import java.time.temporal.TemporalAccessor;
 import java.time.temporal.TemporalField;
 import java.util.List;
 import java.util.Optional;
@@ -22,11 +23,9 @@ public interface TimeClockService {
 
     void clockOutAt(TimeClockRequest timeClockRequest);
 
-    Duration totalHoursWorkedByDay(Long userId, LocalDate workDay);
+    Duration totalHoursWorkedByDay(Long userId, LocalDate day);
 
-    Duration totalHoursWorkedByWeek(Long userId, int week); // week will need to be a different type
-
-    Duration totalHoursWorkedByMonth(Long userId, int month); // month may need to be a different type
+    Duration totalHoursWorked(Long userId, TemporalAccessor temporal);
 
     List<ClockedEmployeeStatusResponse> listClockedInEmployees();
 

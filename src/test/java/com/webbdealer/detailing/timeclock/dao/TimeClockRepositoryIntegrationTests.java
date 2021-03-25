@@ -4,6 +4,7 @@ import com.webbdealer.detailing.DetailingAppApplication;
 import com.webbdealer.detailing.employee.dao.User;
 import com.webbdealer.detailing.employee.dao.UserRepository;
 import com.webbdealer.detailing.shared.TimezoneConverter;
+import com.webbdealer.detailing.timeclock.TimeClockService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -34,6 +35,9 @@ public class TimeClockRepositoryIntegrationTests {
 
     @Autowired
     private ClockedReasonRepository clockedReasonRepository;
+
+    @Autowired
+    private TimeClockService timeClockService;
 
     @Test
     @Transactional
@@ -142,63 +146,11 @@ public class TimeClockRepositoryIntegrationTests {
         );
 //        timeClockRepository.save(mondayOut1);
 
-        List<TimeClock> user1Time = timeClockRepository.findByUserIdAndClockedDate(user1.getId(), LocalDate.of(2021, 03, 8));
-        List<TimeClock> user2Time = timeClockRepository.findByUserIdAndClockedDate(user1.getId(), LocalDate.of(2021, 03, 8));
+//        List<TimeClock> user1Time = timeClockRepository.findByUserIdAndClockedDate(user1.getId(), LocalDate.of(2021, 03, 8));
+//        List<TimeClock> user2Time = timeClockRepository.findByUserIdAndClockedDate(user1.getId(), LocalDate.of(2021, 03, 8));
 
-        List<LocalTime> user1TimeList = user1Time.stream()
-                .map(timeClock -> timeClock.getClockedAt().toLocalDateTime().toLocalTime())
-                .collect(Collectors.toList());
+        timeClockService.totalHoursWorkedByDay(user1.getId(), LocalDate.of(2021, 03, 8));
 
-        System.out.println(user1TimeList.toString());
-
-//        if((user1TimeList.size() % 2) == 0) {
-//            System.out.println("List is even");
-
-            ListIterator<TimeClock> listIterator = user1Time.listIterator();
-
-            while(listIterator.hasNext()) {
-                System.out.println("current index: "+ listIterator.previousIndex() +" -- next index: " + listIterator.nextIndex());
-
-                TimeClock timeClockIn = listIterator.next();
-                System.out.println("clocked in: " + timeClockIn.getClockedAt().toString());
-
-                if(listIterator.hasNext()) {
-                    TimeClock timeClockOut = listIterator.next();
-                    System.out.println("clocked out: " + timeClockOut.getClockedAt().toString());
-
-                Optional<LocalTime> optionalClockedInAt = Optional.empty();
-                Optional<LocalTime> optionalClockedOutAt = Optional.empty();
-
-                if(timeClockIn.getClockedStatus().equals(ClockedStatus.IN)) {
-                    optionalClockedInAt = Optional.of(timeClockIn.getClockedAt().toLocalDateTime().toLocalTime());
-                }
-                if(timeClockOut.getClockedStatus().equals(ClockedStatus.OUT)) {
-                    optionalClockedOutAt = Optional.of(timeClockOut.getClockedAt().toLocalDateTime().toLocalTime());
-                }
-
-                if(optionalClockedInAt.isPresent() && optionalClockedOutAt.isPresent()) {
-                    LocalTime clockedInAt = optionalClockedInAt.get();
-                    LocalTime clockedOutAt = optionalClockedOutAt.get();
-
-                    System.out.println("Is after: " + clockedOutAt.isAfter(clockedInAt));
-
-                    System.out.println("until: " + clockedInAt.until(clockedOutAt, ChronoUnit.MINUTES));
-                    int hours = Duration.between(clockedInAt, clockedOutAt).toHoursPart();
-                    int minutes = Duration.between(clockedInAt, clockedOutAt).toMinutesPart();
-                    System.out.println(hours + " hours, " + minutes + " minutes");
-
-                }
-
-                }
-
-
-            }
-
-//        }
-
-
-        System.out.println(user1Time.size());
-        System.out.println(user2Time.size());
 
     }
 

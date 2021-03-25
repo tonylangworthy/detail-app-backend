@@ -13,13 +13,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
+import java.time.*;
+import java.time.temporal.ChronoUnit;
+import java.time.temporal.TemporalAccessor;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class TimeClockServiceImpl implements TimeClockService {
@@ -68,6 +69,68 @@ public class TimeClockServiceImpl implements TimeClockService {
     @Override
     public void clockOutAt(TimeClockRequest timeClockRequest) {
 
+    }
+
+    @Override
+    public Duration totalHoursWorkedByDay(Long userId, LocalDate day) {
+
+        List<TimeClock> employeeTime = timeClockRepository.findByUserIdAndClockedDate(userId, day);
+
+        List<LocalTime> user1TimeList = employeeTime.stream()
+                .map(timeClock -> timeClock.getClockedAt().toLocalDateTime().toLocalTime())
+                .collect(Collectors.toList());
+
+        ListIterator<TimeClock> listIterator = employeeTime.listIterator();
+
+        while(listIterator.hasNext()) {
+            System.out.println("current index: "+ listIterator.previousIndex() +" -- next index: " + listIterator.nextIndex());
+
+            TimeClock timeClockIn = listIterator.next();
+            System.out.println("clocked in: " + timeClockIn.getClockedAt().toString());
+
+            if(listIterator.hasNext()) {
+                TimeClock timeClockOut = listIterator.next();
+                System.out.println("clocked out: " + timeClockOut.getClockedAt().toString());
+
+                Optional<LocalTime> optionalClockedInAt = Optional.empty();
+                Optional<LocalTime> optionalClockedOutAt = Optional.empty();
+
+                if(timeClockIn.getClockedStatus().equals(ClockedStatus.IN)) {
+                    optionalClockedInAt = Optional.of(timeClockIn.getClockedAt().toLocalDateTime().toLocalTime());
+                }
+                if(timeClockOut.getClockedStatus().equals(ClockedStatus.OUT)) {
+                    optionalClockedOutAt = Optional.of(timeClockOut.getClockedAt().toLocalDateTime().toLocalTime());
+                }
+
+                if(optionalClockedInAt.isPresent() && optionalClockedOutAt.isPresent()) {
+                    LocalTime clockedInAt = optionalClockedInAt.get();
+                    LocalTime clockedOutAt = optionalClockedOutAt.get();
+
+                    System.out.println("Is after: " + clockedOutAt.isAfter(clockedInAt));
+
+                    System.out.println("until: " + clockedInAt.until(clockedOutAt, ChronoUnit.MINUTES));
+                    int hours = Duration.between(clockedInAt, clockedOutAt).toHoursPart();
+                    int minutes = Duration.between(clockedInAt, clockedOutAt).toMinutesPart();
+                    System.out.println(hours + " hours, " + minutes + " minutes");
+
+                }
+
+            }
+
+
+        }
+
+
+        return null;
+    }
+
+    @Override
+    public Duration totalHoursWorked(Long userId, TemporalAccessor temporal) {
+
+        List<TimeClock> user1Time = timeClockRepository.findByUserIdAndClockedDate(userId, LocalDate.of(2021, 03, 8));
+
+
+        return null;
     }
 
     @Override
