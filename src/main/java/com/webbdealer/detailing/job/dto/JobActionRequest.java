@@ -1,6 +1,7 @@
 package com.webbdealer.detailing.job.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.webbdealer.detailing.job.dao.Action;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;

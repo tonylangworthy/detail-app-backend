@@ -21,17 +21,20 @@ import java.util.Objects;
 @Table(name = "jobs")
 public class Job extends BaseEntity implements Serializable {
 
-    @Column(name = "job_started_at", columnDefinition = "TIMESTAMP WITH TIME ZONE")
-    private ZonedDateTime jobStartedAt;
+//    @Column(name = "job_started_at", columnDefinition = "TIMESTAMP WITH TIME ZONE")
+//    private ZonedDateTime jobStartedAt;
+//
+//    @Column(name = "job_paused_at", columnDefinition = "TIMESTAMP WITH TIME ZONE")
+//    private ZonedDateTime jobPausedAt;
+//
+//    @Column(name = "job_ended_at", columnDefinition = "TIMESTAMP WITH TIME ZONE")
+//    private ZonedDateTime jobEndedAt;
+//
+//    @Column(name = "job_canceled")
+//    private boolean jobCanceled;
 
-    @Column(name = "job_paused_at", columnDefinition = "TIMESTAMP WITH TIME ZONE")
-    private ZonedDateTime jobPausedAt;
-
-    @Column(name = "job_ended_at", columnDefinition = "TIMESTAMP WITH TIME ZONE")
-    private ZonedDateTime jobEndedAt;
-
-    @Column(name = "job_canceled")
-    private boolean jobCanceled;
+    @Column(name = "job_status")
+    private JobStatus jobStatus;
 
     @Column(name = "manager_notes", columnDefinition = "TEXT")
     private String managerNotes;
@@ -54,21 +57,16 @@ public class Job extends BaseEntity implements Serializable {
     @JsonBackReference
     private Vehicle vehicle;
 
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-            name = "employees_jobs",
-            joinColumns = @JoinColumn(name = "employee_id", referencedColumnName = "id"),
-            inverseJoinColumns = @JoinColumn(name = "job_id", referencedColumnName = "id")
-    )
-    private List<User> employees = new ArrayList<>();
+//    @ManyToMany(fetch = FetchType.LAZY)
+//    @JoinTable(
+//            name = "employees_jobs",
+//            joinColumns = @JoinColumn(name = "employee_id", referencedColumnName = "id"),
+//            inverseJoinColumns = @JoinColumn(name = "job_id", referencedColumnName = "id")
+//    )
+//    private List<User> employees = new ArrayList<>();
 
-    public List<User> getEmployees() {
-        return employees;
-    }
-
-    public void setEmployees(List<User> employees) {
-        this.employees = employees;
-    }
+    @OneToMany(mappedBy = "job")
+    private List<JobAction> jobActions;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
@@ -77,36 +75,12 @@ public class Job extends BaseEntity implements Serializable {
             inverseJoinColumns = @JoinColumn(name = "job_id", referencedColumnName = "id"))
     private List<Recondition> reconditioningServices = new ArrayList<>();
 
-    public ZonedDateTime getJobStartedAt() {
-        return jobStartedAt;
+    public JobStatus getJobStatus() {
+        return jobStatus;
     }
 
-    public void setJobStartedAt(ZonedDateTime jobStartedAt) {
-        this.jobStartedAt = jobStartedAt;
-    }
-
-    public ZonedDateTime getJobPausedAt() {
-        return jobPausedAt;
-    }
-
-    public void setJobPausedAt(ZonedDateTime jobPausedAt) {
-        this.jobPausedAt = jobPausedAt;
-    }
-
-    public ZonedDateTime getJobEndedAt() {
-        return jobEndedAt;
-    }
-
-    public void setJobEndedAt(ZonedDateTime jobEndedAt) {
-        this.jobEndedAt = jobEndedAt;
-    }
-
-    public boolean isJobCanceled() {
-        return jobCanceled;
-    }
-
-    public void setJobCanceled(boolean jobCanceled) {
-        this.jobCanceled = jobCanceled;
+    public void setJobStatus(JobStatus jobStatus) {
+        this.jobStatus = jobStatus;
     }
 
     public String getManagerNotes() {
@@ -149,6 +123,14 @@ public class Job extends BaseEntity implements Serializable {
         this.vehicle = vehicle;
     }
 
+    public List<JobAction> getJobActions() {
+        return jobActions;
+    }
+
+    public void setJobActions(List<JobAction> jobActions) {
+        this.jobActions = jobActions;
+    }
+
     public List<Recondition> getReconditioningServices() {
         return reconditioningServices;
     }
@@ -163,27 +145,23 @@ public class Job extends BaseEntity implements Serializable {
         if (o == null || getClass() != o.getClass()) return false;
         if (!super.equals(o)) return false;
         Job job = (Job) o;
-        return jobCanceled == job.jobCanceled && Objects.equals(jobStartedAt, job.jobStartedAt) && Objects.equals(jobPausedAt, job.jobPausedAt) && Objects.equals(jobEndedAt, job.jobEndedAt) && Objects.equals(managerNotes, job.managerNotes) && Objects.equals(employeeNotes, job.employeeNotes) && Objects.equals(company, job.company) && Objects.equals(customer, job.customer) && Objects.equals(vehicle, job.vehicle) && Objects.equals(employees, job.employees) && Objects.equals(reconditioningServices, job.reconditioningServices);
+        return jobStatus == job.jobStatus && Objects.equals(managerNotes, job.managerNotes) && Objects.equals(employeeNotes, job.employeeNotes) && Objects.equals(company, job.company) && Objects.equals(customer, job.customer) && Objects.equals(vehicle, job.vehicle) && Objects.equals(jobActions, job.jobActions) && Objects.equals(reconditioningServices, job.reconditioningServices);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), jobStartedAt, jobPausedAt, jobEndedAt, jobCanceled, managerNotes, employeeNotes, company, customer, vehicle, employees, reconditioningServices);
+        return Objects.hash(super.hashCode(), jobStatus, managerNotes, employeeNotes, company, customer, vehicle, jobActions, reconditioningServices);
     }
 
     @Override
     public String toString() {
         return "Job{" +
-                "jobStartedAt=" + jobStartedAt +
-                ", jobPausedAt=" + jobPausedAt +
-                ", jobEndedAt=" + jobEndedAt +
-                ", jobFinished=" + jobCanceled +
+                "jobStatus=" + jobStatus +
                 ", managerNotes='" + managerNotes + '\'' +
                 ", employeeNotes='" + employeeNotes + '\'' +
                 ", company=" + company +
                 ", customer=" + customer +
                 ", vehicle=" + vehicle +
-                ", reconditioningServices=" + reconditioningServices +
                 '}';
     }
 }

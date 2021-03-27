@@ -3,6 +3,7 @@ package com.webbdealer.detailing.employee.dao;
 import com.fasterxml.jackson.annotation.*;
 import com.webbdealer.detailing.company.dao.Company;
 import com.webbdealer.detailing.job.dao.Job;
+import com.webbdealer.detailing.job.dao.JobAction;
 import com.webbdealer.detailing.security.dao.Role;
 import com.webbdealer.detailing.timeclock.dao.TimeClock;
 
@@ -64,9 +65,12 @@ public class User implements Serializable {
             inverseJoinColumns = @JoinColumn(name = "role_id", referencedColumnName = "id"))
     private List<Role> roles = new ArrayList<>();
 
-    @ManyToMany(mappedBy = "employees")
-    @JsonIgnore
-    private List<Job> jobs;
+//    @ManyToMany(mappedBy = "employees")
+//    @JsonIgnore
+//    private List<Job> jobs;
+
+    @OneToMany(mappedBy = "user")
+    private List<JobAction> jobActions;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -200,6 +204,14 @@ public class User implements Serializable {
         this.roles = roles;
     }
 
+    public List<JobAction> getJobActions() {
+        return jobActions;
+    }
+
+    public void setJobActions(List<JobAction> jobActions) {
+        this.jobActions = jobActions;
+    }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
@@ -221,12 +233,12 @@ public class User implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;
-        return isMobile == user.isMobile && deleted == user.deleted && Objects.equals(id, user.id) && Objects.equals(firstName, user.firstName) && Objects.equals(middle, user.middle) && Objects.equals(lastName, user.lastName) && Objects.equals(phone, user.phone) && Objects.equals(email, user.email) && Objects.equals(password, user.password) && Objects.equals(pin, user.pin) && Objects.equals(company, user.company) && Objects.equals(timeClocks, user.timeClocks) && Objects.equals(roles, user.roles) && Objects.equals(jobs, user.jobs) && Objects.equals(createdAt, user.createdAt) && Objects.equals(updatedAt, user.updatedAt);
+        return isMobile == user.isMobile && deleted == user.deleted && Objects.equals(id, user.id) && Objects.equals(firstName, user.firstName) && Objects.equals(middle, user.middle) && Objects.equals(lastName, user.lastName) && Objects.equals(phone, user.phone) && Objects.equals(email, user.email) && Objects.equals(password, user.password) && Objects.equals(pin, user.pin) && Objects.equals(company, user.company) && Objects.equals(timeClocks, user.timeClocks) && Objects.equals(roles, user.roles) && Objects.equals(jobActions, user.jobActions) && Objects.equals(createdAt, user.createdAt) && Objects.equals(updatedAt, user.updatedAt);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, firstName, middle, lastName, phone, isMobile, email, password, pin, company, timeClocks, roles, jobs, createdAt, updatedAt, deleted);
+        return Objects.hash(id, firstName, middle, lastName, phone, isMobile, email, password, pin, company, timeClocks, roles, jobActions, createdAt, updatedAt, deleted);
     }
 
     @Override

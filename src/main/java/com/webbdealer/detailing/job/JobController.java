@@ -1,6 +1,8 @@
 package com.webbdealer.detailing.job;
 
+import com.webbdealer.detailing.job.dao.Action;
 import com.webbdealer.detailing.job.dao.Job;
+import com.webbdealer.detailing.job.dao.JobStatus;
 import com.webbdealer.detailing.job.dto.JobActionRequest;
 import com.webbdealer.detailing.job.dto.CreateJobRequest;
 import com.webbdealer.detailing.job.dto.JobDetailsResponse;
@@ -25,11 +27,11 @@ public class JobController {
 
     private static final Logger logger = LoggerFactory.getLogger(JobController.class);
 
-    private JobService jobService;
+    private JobServiceFacade jobServiceFacade;
 
     @Autowired
-    public JobController(JobService jobService) {
-        this.jobService = jobService;
+    public JobController(JobServiceFacade jobServiceFacade) {
+        this.jobServiceFacade = jobServiceFacade;
     }
 
     @PostMapping("")
@@ -41,7 +43,7 @@ public class JobController {
 
         JwtClaim userDetails = (JwtClaim) auth.getPrincipal();
 
-        Job job = jobService.storeJobFromRequest(userDetails.getCompanyId(), createJobRequest);
+        Job job = jobServiceFacade.storeJobFromRequest(userDetails.getCompanyId(), createJobRequest);
 
         System.out.println(createJobRequest.toString());
 
@@ -59,18 +61,22 @@ public class JobController {
         List<JobItemResponse> jobs;
 
         if(status == null) {
-            jobs = jobService.fetchAllJobs(userDetails.getCompanyId());
+            jobs = jobServiceFacade.fetchAllJobs(userDetails.getCompanyId());
             return ResponseEntity.ok(jobs);
         }
         switch (status) {
             case "pending":
-                jobs = jobService.fetchPendingJobs(userDetails.getCompanyId());
+                jobs = jobServiceFacade.fetchJobs(userDetails.getCompanyId(), JobStatus.PENDING);
+                break;
             case "active":
-                jobs = jobService.fetchActiveJobs(userDetails.getCompanyId());
+                jobs = jobServiceFacade.fetchJobs(userDetails.getCompanyId(), JobStatus.ACTIVE);
+                break;
             case "completed":
-                jobs = jobService.fetchCompletedJobs(userDetails.getCompanyId());
+                jobs = jobServiceFacade.fetchJobs(userDetails.getCompanyId(), JobStatus.COMPLETED);
+                break;
             default:
                 jobs = new ArrayList<>();
+                break;
         }
 
         logger.info(jobs.toString());
@@ -85,7 +91,7 @@ public class JobController {
 
         JwtClaim userDetails = (JwtClaim) auth.getPrincipal();
 
-        return ResponseEntity.ok(jobService.fetchJobDetails(userDetails.getCompanyId(), id));
+        return ResponseEntity.ok(jobServiceFacade.fetchJobDetails(userDetails.getCompanyId(), id));
     }
 
     @PatchMapping("/{id}")
@@ -103,22 +109,29 @@ public class JobController {
         System.out.println(jobAction);
         System.out.println(jobActionRequest.getActionAt());
 
+        jobServiceFacade.startJob(id, userDetails.getUserId(), actionAt);
+
+
         switch (jobAction) {
             case "start":
                 output = "job started";
-                jobService.startJob(id, userDetails.getUserId(), actionAt);
+                jobServiceFacade.startJob(id, userDetails.getUserId(), actionAt);
+                break;
+            case "stop":
+                output = "job stopped";
+                jobServiceFacade.stopJob(id, userDetails.getUserId(), actionAt);
                 break;
             case "pause":
                 output = "job paused";
-                jobService.pauseJob(id, actionAt);
+                jobServiceFacade.pauseJob(id, userDetails.getUserId(), actionAt);
                 break;
-            case "end":
-                output = "job ended";
-                jobService.endJob(id, actionAt);
+            case "resume":
+                output = "job resumed";
+                jobServiceFacade.resumeJob(id, userDetails.getUserId(), actionAt);
                 break;
             case "cancel":
                 output = "job canceled";
-                jobService.cancelJob(id);
+                jobServiceFacade.cancelJob(id, userDetails.getUserId(), actionAt);
                 break;
             default:
                 output = "invalid action!";

@@ -32,13 +32,4 @@ public interface JobService {
 
     Job storeJob(Long companyId, Job job);
 
-    JobStatus jobStatus(Job job);
-
-    Job startJob(Long jobId, Long userId, LocalDateTime startAt);
-
-    Job pauseJob(Long jobId, LocalDateTime pauseAt);
-
-    Job endJob(Long jobId, LocalDateTime endAt);
-
-    Job cancelJob(Long jobId);
 }

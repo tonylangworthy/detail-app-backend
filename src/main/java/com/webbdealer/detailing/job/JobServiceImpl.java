@@ -135,9 +135,9 @@ public class JobServiceImpl implements JobService {
         Optional<LocalDateTime> optionalPausedAt = Optional.empty();
         Optional<LocalDateTime> optionalEndedAt = Optional.empty();
 
-        if(Objects.nonNull(job.getJobStartedAt())) optionalStartedAt = Optional.of(job.getJobStartedAt().toLocalDateTime());
-        if(Objects.nonNull(job.getJobPausedAt())) optionalPausedAt = Optional.of(job.getJobPausedAt().toLocalDateTime());
-        if(Objects.nonNull(job.getJobEndedAt())) optionalEndedAt = Optional.of(job.getJobEndedAt().toLocalDateTime());
+//        if(Objects.nonNull(job.getJobStartedAt())) optionalStartedAt = Optional.of(job.getJobStartedAt().toLocalDateTime());
+//        if(Objects.nonNull(job.getJobPausedAt())) optionalPausedAt = Optional.of(job.getJobPausedAt().toLocalDateTime());
+//        if(Objects.nonNull(job.getJobEndedAt())) optionalEndedAt = Optional.of(job.getJobEndedAt().toLocalDateTime());
 
         LocalDateTime startedAt = optionalStartedAt.orElseThrow();
 //        LocalDateTime pausedAt = optionalPausedAt.orElseThrow();
@@ -213,77 +213,6 @@ public class JobServiceImpl implements JobService {
         return jobRepository.save(job);
     }
 
-    @Override
-    public JobStatus jobStatus(Job job) {
-
-        JobStatus status = null;
-
-        // If the job_started_at is null, the status is PENDING
-        if (job.getJobStartedAt() == null) {
-            logger.info("JOB IS PENDING");
-            status = JobStatus.PENDING;
-        }
-
-        // If job_started_at is before now and job_ended_at == null, and job_paused_at is null, the job is ACTIVE
-        else if (job.getJobStartedAt() != null && job.getJobEndedAt() == null) {
-            logger.info("JOB IS ACTIVE");
-            status = JobStatus.ACTIVE;
-        }
-
-        // If job_finished === true, the status is COMPLETED
-        else if (job.getJobEndedAt() != null) {
-            logger.info("JOB IS COMPLETED");
-            status = JobStatus.COMPLETED;
-        }
-        return status;
-    }
-
-    @Override
-    public Job startJob(Long jobId, Long userId, LocalDateTime startAt) {
-        Job job = fetchById(jobId);
-        User user = employeeService.fetchByIdReference(userId);
-
-        if(job.getJobEndedAt() != null) {
-            throw new InvalidJobActionException("Job already ended!!");
-        }
-        job.setJobStartedAt(startAt.atZone(zoneId));
-        job.getEmployees().add(user);
-        return jobRepository.save(job);
-    }
-
-    @Override
-    public Job pauseJob(Long jobId, LocalDateTime pauseAt) {
-        Job job = fetchById(jobId);
-        if(job.getJobStartedAt() == null) {
-            throw new InvalidJobActionException("Job hasn't even been started yet!!");
-        }
-        if(job.getJobEndedAt() != null) {
-            throw new InvalidJobActionException("Job already ended!!");
-        }
-        job.setJobPausedAt(pauseAt.atZone(zoneId));
-        return jobRepository.save(job);
-    }
-
-    @Override
-    public Job endJob(Long jobId, LocalDateTime endAt) {
-        Job job = fetchById(jobId);
-        if(job.getJobEndedAt() != null) {
-            throw new InvalidJobActionException("Job already ended!!");
-        }
-        if(job.getJobStartedAt() == null) {
-            throw new InvalidJobActionException("Job hasn't even been started yet!!");
-        }
-        job.setJobEndedAt(endAt.atZone(zoneId));
-        return jobRepository.save(job);
-    }
-
-    @Override
-    public Job cancelJob(Long jobId) {
-        Job job = fetchById(jobId);
-        job.setJobCanceled(true);
-        return jobRepository.save(job);
-    }
-
     private List<JobItemResponse> mapJobListToResponseList(Long companyId, List<Job> jobs) {
         List<JobItemResponse> jobItemResponseList = new ArrayList<>();
         List<Long> catalogIdList = new ArrayList<>();
@@ -303,29 +232,29 @@ public class JobServiceImpl implements JobService {
 
     private JobItemResponse mapJobToJobItemResponse(Job job, Optional<VehicleResponse> optionalVehicleResponse) {
         JobItemResponse jobItem = new JobItemResponse();
-        jobItem.setId(job.getId());
-        jobItem.setStatus(jobStatus(job));
-
-        Customer customer = job.getCustomer();
-        jobItem.setCustomerType(customer.getCustomerType());
-        jobItem.setCustomerFirstName(customer.getFirstName());
-        jobItem.setCustomerLastName(customer.getLastName());
-        jobItem.setCustomerBusiness(customer.getBusiness());
-
-        if(optionalVehicleResponse.isPresent()) {
-            VehicleResponse vehicle = optionalVehicleResponse.get();
-            jobItem.setVehicleYear(vehicle.getYear());
-            jobItem.setVehicleMake(vehicle.getMake());
-            jobItem.setVehicleModel(vehicle.getModel());
-            jobItem.setVehicleTrim(vehicle.getTrim());
-        }
-
-        List<User> employees = job.getEmployees();
-        employees.forEach(employee -> {
-            String firstName = employee.getFirstName();
-            String lastName = employee.getLastName();
-            jobItem.getAssignedEmployees().add(firstName + " " + lastName);
-        });
+//        jobItem.setId(job.getId());
+//        jobItem.setStatus(jobStatus(job));
+//
+//        Customer customer = job.getCustomer();
+//        jobItem.setCustomerType(customer.getCustomerType());
+//        jobItem.setCustomerFirstName(customer.getFirstName());
+//        jobItem.setCustomerLastName(customer.getLastName());
+//        jobItem.setCustomerBusiness(customer.getBusiness());
+//
+//        if(optionalVehicleResponse.isPresent()) {
+//            VehicleResponse vehicle = optionalVehicleResponse.get();
+//            jobItem.setVehicleYear(vehicle.getYear());
+//            jobItem.setVehicleMake(vehicle.getMake());
+//            jobItem.setVehicleModel(vehicle.getModel());
+//            jobItem.setVehicleTrim(vehicle.getTrim());
+//        }
+//
+//        List<User> employees = job.getEmployees();
+//        employees.forEach(employee -> {
+//            String firstName = employee.getFirstName();
+//            String lastName = employee.getLastName();
+//            jobItem.getAssignedEmployees().add(firstName + " " + lastName);
+//        });
         return jobItem;
     }
 
@@ -334,26 +263,26 @@ public class JobServiceImpl implements JobService {
 
         JobDetailsResponse jobDetailsResponse = new JobDetailsResponse();
 
-        CustomerResponse customerResponse = customerService.mapCustomerToResponse(job.getCustomer());
-        jobDetailsResponse.setCustomer(customerResponse);
+//        CustomerResponse customerResponse = customerService.mapCustomerToResponse(job.getCustomer());
+//        jobDetailsResponse.setCustomer(customerResponse);
+//
+//        VehicleResponse vehicleResponse = vehicleService.mapVehicleToResponse(companyId, job.getVehicle());
+//        jobDetailsResponse.setVehicle(vehicleResponse);
+//
+//        List<EmployeeResponse> employeeList = employeeService.mapEmployeeListToResponseList(job.getEmployees());
+//        jobDetailsResponse.setEmployees(employeeList);
+//
+//        List<ReconditionServiceResponse> reconditionList = reconditionService.mapReconditionListToResponseList(job.getReconditioningServices());
+//        jobDetailsResponse.setServices(reconditionList);
+//
+//        jobDetailsResponse.setId(job.getId());
+//        jobDetailsResponse.setStatus(jobStatus(job));
+//        jobDetailsResponse.setEmployeeNotes(job.getEmployeeNotes());
+//        jobDetailsResponse.setManagerNotes(job.getManagerNotes());
 
-        VehicleResponse vehicleResponse = vehicleService.mapVehicleToResponse(companyId, job.getVehicle());
-        jobDetailsResponse.setVehicle(vehicleResponse);
-
-        List<EmployeeResponse> employeeList = employeeService.mapEmployeeListToResponseList(job.getEmployees());
-        jobDetailsResponse.setEmployees(employeeList);
-
-        List<ReconditionServiceResponse> reconditionList = reconditionService.mapReconditionListToResponseList(job.getReconditioningServices());
-        jobDetailsResponse.setServices(reconditionList);
-
-        jobDetailsResponse.setId(job.getId());
-        jobDetailsResponse.setStatus(jobStatus(job));
-        jobDetailsResponse.setEmployeeNotes(job.getEmployeeNotes());
-        jobDetailsResponse.setManagerNotes(job.getManagerNotes());
-
-        if(job.getJobStartedAt() != null) jobDetailsResponse.setJobStartedAt(timezoneConverter.fromUtcToLocalDateTime(job.getJobStartedAt()));
-        if(job.getJobPausedAt() != null) jobDetailsResponse.setJobPausedAt(job.getJobPausedAt().withZoneSameInstant(zoneId).toLocalDateTime());
-        if(job.getJobEndedAt() != null) jobDetailsResponse.setJobEndedAt(job.getJobEndedAt().withZoneSameInstant(zoneId).toLocalDateTime());
+//        if(job.getJobStartedAt() != null) jobDetailsResponse.setJobStartedAt(timezoneConverter.fromUtcToLocalDateTime(job.getJobStartedAt()));
+//        if(job.getJobPausedAt() != null) jobDetailsResponse.setJobPausedAt(job.getJobPausedAt().withZoneSameInstant(zoneId).toLocalDateTime());
+//        if(job.getJobEndedAt() != null) jobDetailsResponse.setJobEndedAt(job.getJobEndedAt().withZoneSameInstant(zoneId).toLocalDateTime());
 
         jobDetailsResponse.setCreatedAt(job.getCreatedAt());
         jobDetailsResponse.setUpdatedAt(job.getUpdatedAt());
