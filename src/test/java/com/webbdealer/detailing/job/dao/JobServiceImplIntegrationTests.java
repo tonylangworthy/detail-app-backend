@@ -23,41 +23,5 @@ import static org.mockito.Mockito.*;
 @SpringBootTest
 public class JobServiceImplIntegrationTests {
 
-    @Mock
-    private CompanyService companyService;
 
-    @Mock
-    private JobRepository jobRepository;
-
-    @Mock
-    private VehicleService vehicleService;
-
-    @Mock
-    private VehicleLookupService vehicleLookupService;
-
-    @Mock
-    private CustomerService customerService;
-
-    @Mock
-    private ReconditionService reconditionService;
-
-    @Mock
-    private EmployeeService employeeService;
-
-
-    @InjectMocks
-    private JobService jobService = new JobServiceImpl(
-            companyService,
-            jobRepository,
-            vehicleService,
-            vehicleLookupService,
-            customerService,
-            reconditionService,
-            employeeService);
-
-    @BeforeEach
-    void setMockOutput() {
-        LocalDateTime startAt = LocalDateTime.of(2021, 03, 14, 7, 51);
-
-    }
 }

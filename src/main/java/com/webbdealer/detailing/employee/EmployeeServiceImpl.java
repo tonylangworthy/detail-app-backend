@@ -52,6 +52,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Override
     public User createManager(User user) {
         authorityService.addToManagerRole(user);
+        authorityService.addToEmployeeRole(user);
         return userRepository.save(user);
     }
 
