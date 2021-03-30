@@ -12,21 +12,31 @@ import java.util.List;
 
 public interface JobService {
 
-    Job fetchById(Long id);
+    Job fetchById(Long companyId, Long id);
 
     Job fetchByIdReference(Long id);
 
     List<JobItemResponse> fetchAllJobs(Long companyId);
 
-    List<JobItemResponse> fetchPendingJobs(Long companyId);
+    List<JobItemResponse> fetchJobsByStatus(Long companyId, JobStatus jobStatus);
 
-    List<JobItemResponse> fetchActiveJobs(Long companyId);
+    JobDetailsResponse fetchJobDetails(Long companyId, Job job);
 
-    List<JobItemResponse> fetchCompletedJobs(Long companyId);
+    void startJob(Job job, Long userId, LocalDateTime startAt);
 
-    JobDetailsResponse fetchJobDetails(Long companyId, Long jobId);
+    void stopJob(Job job, Long userId, LocalDateTime stopAt);
 
-    Duration jobTotalTime(Long jobId);
+    void pauseJob(Job job, Long userId, LocalDateTime pauseAt);
+
+    void resumeJob(Job job, Long userId, LocalDateTime resumeAt);
+
+    void cancelJob(Job job, Long userId, LocalDateTime cancelAt);
+
+    void addEmployeeToJob(Job job, Long userId, LocalDateTime startAt);
+
+    void removeEmployeeFromJob(Job job, Long userId, LocalDateTime stopAt);
+
+    Duration jobTotalTime(Job job);
 
     Job storeJobFromRequest(Long companyId, CreateJobRequest createJobRequest);
 

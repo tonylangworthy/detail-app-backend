@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
+import javax.persistence.EntityNotFoundException;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,7 +29,11 @@ public class JobRepositoryIntegrationTests {
 
     @Test
     public void jobTotalTime_Test() {
-        jobService.jobTotalTime(8L);
+
+        Job job = new Job();
+        // Create a list of JobAction objects
+
+        jobService.jobTotalTime(job);
 
 
     }

@@ -86,8 +86,8 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public Job fetchById(Long id) {
-        Optional<Job> optionalJob = jobRepository.findById(id);
+    public Job fetchById(Long companyId, Long id) {
+        Optional<Job> optionalJob = jobRepository.findByCompanyIdAndId(companyId, id);
         return optionalJob.orElseThrow(() -> new EntityNotFoundException("Job with id of ["+id+"] not found!"));
     }
 
@@ -105,31 +105,81 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public List<JobItemResponse> fetchPendingJobs(Long companyId) {
+    public List<JobItemResponse> fetchJobsByStatus(Long companyId, JobStatus jobStatus) {
         return null;
     }
 
     @Override
-    public List<JobItemResponse> fetchActiveJobs(Long companyId) {
-        return null;
-    }
-
-    @Override
-    public List<JobItemResponse> fetchCompletedJobs(Long companyId) {
-        return null;
-    }
-
-    @Override
-    public JobDetailsResponse fetchJobDetails(Long companyId, Long jobId) {
-        Optional<Job> optionalJob = jobRepository.findByCompanyIdAndId(companyId, jobId);
-        Job job = optionalJob.orElseThrow(() -> new EntityNotFoundException("Job with id of ["+jobId+"] not found!"));
+    public JobDetailsResponse fetchJobDetails(Long companyId, Job job) {
         return mapJobToJobDetailsResponse(companyId, job);
     }
 
     @Override
-    public Duration jobTotalTime(Long jobId) {
-        Optional<Job> optionalJob = jobRepository.findById(jobId);
-        Job job = optionalJob.orElseThrow(() -> new EntityNotFoundException("Job with id of ["+jobId+"] not found!"));
+    public void startJob(Job job, Long userId, LocalDateTime startAt) {
+        // 1. Is this user already working this job?
+        // if yes, throw exception
+        // else, assign this user to job
+
+    }
+
+    @Override
+    public void stopJob(Job job, Long userId, LocalDateTime stopAt) {
+        // 1. Has job been started?
+        // If no, throw exception (job hasn't been started yet!
+
+        // If yes,
+        // 2. Are there any other users on this job?
+        // If yes, job stays active
+        // If no, mark job as completed
+
+        // DO NOT ALLOW JOB TO STOP IF THERE ARE OTHER USERS WORKING ON IT
+    }
+
+    @Override
+    public void pauseJob(Job job, Long userId, LocalDateTime pauseAt) {
+        // 1. Has job been started?
+        // If yes, job can be paused
+        // If no, throw exception (job hasn't been started yet!)
+
+        // Store which job will be paused, which user paused it, and what time it was paused
+
+        // When job is paused, the time for all users on this job stops
+    }
+
+    @Override
+    public void resumeJob(Job job, Long userId, LocalDateTime resumeAt) {
+        // 1. Has job been started?
+        // If yes, has job been paused?
+        // If yes, then job can be resumed
+        // If no, throw exception (cannot resume this job)
+
+        //
+    }
+
+    @Override
+    public void cancelJob(Job job, Long userId, LocalDateTime cancelAt) {
+        // ONLY ADMIN OR MANAGER CAN CANCEL JOB
+    }
+
+    @Override
+    public void addEmployeeToJob(Job job, Long userId, LocalDateTime startAt) {
+        // Add employee to job.
+        // If job is currently pending, mark job as active
+    }
+
+    @Override
+    public void removeEmployeeFromJob(Job job, Long userId, LocalDateTime stopAt) {
+        // Remove employee from job.
+        // If job is active, and there are no other employees working the job
+        // set the job status to paused
+
+        // If other users are working the job, keep status as active
+    }
+
+    @Override
+    public Duration jobTotalTime(Job job) {
+        // This calculates the total man hours for this job
+        // If 2 employees spent 4 hours each, total time would be 8 hours
 
         Optional<LocalDateTime> optionalStartedAt = Optional.empty();
         Optional<LocalDateTime> optionalPausedAt = Optional.empty();

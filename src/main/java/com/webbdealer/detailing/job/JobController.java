@@ -27,11 +27,11 @@ public class JobController {
 
     private static final Logger logger = LoggerFactory.getLogger(JobController.class);
 
-    private JobServiceFacade jobServiceFacade;
+    private JobService jobService;
 
     @Autowired
-    public JobController(JobServiceFacade jobServiceFacade) {
-        this.jobServiceFacade = jobServiceFacade;
+    public JobController(JobService jobService) {
+        this.jobService = jobService;
     }
 
     @PostMapping("")
@@ -43,7 +43,7 @@ public class JobController {
 
         JwtClaim userDetails = (JwtClaim) auth.getPrincipal();
 
-        Job job = jobServiceFacade.storeJobFromRequest(userDetails.getCompanyId(), createJobRequest);
+        Job job = jobService.storeJobFromRequest(userDetails.getCompanyId(), createJobRequest);
 
         System.out.println(createJobRequest.toString());
 
@@ -61,18 +61,18 @@ public class JobController {
         List<JobItemResponse> jobs;
 
         if(status == null) {
-            jobs = jobServiceFacade.fetchAllJobs(userDetails.getCompanyId());
+            jobs = jobService.fetchAllJobs(userDetails.getCompanyId());
             return ResponseEntity.ok(jobs);
         }
         switch (status) {
             case "pending":
-                jobs = jobServiceFacade.fetchJobs(userDetails.getCompanyId(), JobStatus.PENDING);
+                jobs = jobService.fetchJobsByStatus(userDetails.getCompanyId(), JobStatus.PENDING);
                 break;
             case "active":
-                jobs = jobServiceFacade.fetchJobs(userDetails.getCompanyId(), JobStatus.ACTIVE);
+                jobs = jobService.fetchJobsByStatus(userDetails.getCompanyId(), JobStatus.ACTIVE);
                 break;
             case "completed":
-                jobs = jobServiceFacade.fetchJobs(userDetails.getCompanyId(), JobStatus.COMPLETED);
+                jobs = jobService.fetchJobsByStatus(userDetails.getCompanyId(), JobStatus.COMPLETED);
                 break;
             default:
                 jobs = new ArrayList<>();
@@ -91,7 +91,9 @@ public class JobController {
 
         JwtClaim userDetails = (JwtClaim) auth.getPrincipal();
 
-        return ResponseEntity.ok(jobServiceFacade.fetchJobDetails(userDetails.getCompanyId(), id));
+        Job job = jobService.fetchById(userDetails.getCompanyId(), id);
+
+        return ResponseEntity.ok(jobService.fetchJobDetails(userDetails.getCompanyId(), job));
     }
 
     @PatchMapping("/{id}")
@@ -109,29 +111,29 @@ public class JobController {
         System.out.println(jobAction);
         System.out.println(jobActionRequest.getActionAt());
 
-        jobServiceFacade.startJob(id, userDetails.getUserId(), actionAt);
+        Job job = jobService.fetchById(userDetails.getCompanyId(), id);
 
 
         switch (jobAction) {
             case "start":
                 output = "job started";
-                jobServiceFacade.startJob(id, userDetails.getUserId(), actionAt);
+                jobService.startJob(job, userDetails.getUserId(), actionAt);
                 break;
             case "stop":
                 output = "job stopped";
-                jobServiceFacade.stopJob(id, userDetails.getUserId(), actionAt);
+                jobService.stopJob(job, userDetails.getUserId(), actionAt);
                 break;
             case "pause":
                 output = "job paused";
-                jobServiceFacade.pauseJob(id, userDetails.getUserId(), actionAt);
+                jobService.pauseJob(job, userDetails.getUserId(), actionAt);
                 break;
             case "resume":
                 output = "job resumed";
-                jobServiceFacade.resumeJob(id, userDetails.getUserId(), actionAt);
+                jobService.resumeJob(job, userDetails.getUserId(), actionAt);
                 break;
             case "cancel":
                 output = "job canceled";
-                jobServiceFacade.cancelJob(id, userDetails.getUserId(), actionAt);
+                jobService.cancelJob(job, userDetails.getUserId(), actionAt);
                 break;
             default:
                 output = "invalid action!";
