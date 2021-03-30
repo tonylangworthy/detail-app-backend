@@ -9,9 +9,7 @@ import com.webbdealer.detailing.customer.dto.CustomerResponse;
 import com.webbdealer.detailing.employee.EmployeeService;
 import com.webbdealer.detailing.employee.dao.User;
 import com.webbdealer.detailing.employee.dto.EmployeeResponse;
-import com.webbdealer.detailing.job.dao.Job;
-import com.webbdealer.detailing.job.dao.JobRepository;
-import com.webbdealer.detailing.job.dao.JobStatus;
+import com.webbdealer.detailing.job.dao.*;
 import com.webbdealer.detailing.job.dto.CreateJobRequest;
 import com.webbdealer.detailing.job.dto.JobItemResponse;
 import com.webbdealer.detailing.job.dto.JobDetailsResponse;
@@ -115,15 +113,30 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public void startJob(Job job, Long userId, LocalDateTime startAt) {
+    public Job startJob(Job job, Long userId, LocalDateTime startAt) {
         // 1. Is this user already working this job?
         // if yes, throw exception
-        // else, assign this user to job
+        // else, mark this job as active
 
+        List<JobAction> jobActions = job.getJobActions();
+        logger.info(jobActions.toString());
+        Optional<JobAction> optionalAction = jobActions.stream()
+                .filter(jobAction -> {
+                    logger.info("UserID: " + jobAction.getUser().getId());
+                    return jobAction.getUser().getId().equals(userId);
+                })
+                .findFirst();
+        if(optionalAction.isPresent()) {
+            throw new InvalidJobActionException(("This employee is already assigned to this job"));
+        }
+        else {
+            job.setJobStatus(JobStatus.ACTIVE);
+        }
+        return job;
     }
 
     @Override
-    public void stopJob(Job job, Long userId, LocalDateTime stopAt) {
+    public Job stopJob(Job job, Long userId, LocalDateTime stopAt) {
         // 1. Has job been started?
         // If no, throw exception (job hasn't been started yet!
 
@@ -133,10 +146,11 @@ public class JobServiceImpl implements JobService {
         // If no, mark job as completed
 
         // DO NOT ALLOW JOB TO STOP IF THERE ARE OTHER USERS WORKING ON IT
+        return null;
     }
 
     @Override
-    public void pauseJob(Job job, Long userId, LocalDateTime pauseAt) {
+    public Job pauseJob(Job job, Long userId, LocalDateTime pauseAt) {
         // 1. Has job been started?
         // If yes, job can be paused
         // If no, throw exception (job hasn't been started yet!)
@@ -144,36 +158,41 @@ public class JobServiceImpl implements JobService {
         // Store which job will be paused, which user paused it, and what time it was paused
 
         // When job is paused, the time for all users on this job stops
+        return null;
     }
 
     @Override
-    public void resumeJob(Job job, Long userId, LocalDateTime resumeAt) {
+    public Job resumeJob(Job job, Long userId, LocalDateTime resumeAt) {
         // 1. Has job been started?
         // If yes, has job been paused?
         // If yes, then job can be resumed
         // If no, throw exception (cannot resume this job)
 
         //
+        return null;
     }
 
     @Override
-    public void cancelJob(Job job, Long userId, LocalDateTime cancelAt) {
+    public Job cancelJob(Job job, Long userId, LocalDateTime cancelAt) {
         // ONLY ADMIN OR MANAGER CAN CANCEL JOB
+        return null;
     }
 
     @Override
-    public void addEmployeeToJob(Job job, Long userId, LocalDateTime startAt) {
+    public Job addEmployeeToJob(Job job, Long userId, LocalDateTime startAt) {
         // Add employee to job.
         // If job is currently pending, mark job as active
+        return null;
     }
 
     @Override
-    public void removeEmployeeFromJob(Job job, Long userId, LocalDateTime stopAt) {
+    public Job removeEmployeeFromJob(Job job, Long userId, LocalDateTime stopAt) {
         // Remove employee from job.
         // If job is active, and there are no other employees working the job
         // set the job status to paused
 
         // If other users are working the job, keep status as active
+        return null;
     }
 
     @Override

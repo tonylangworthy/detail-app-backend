@@ -22,19 +22,19 @@ public interface JobService {
 
     JobDetailsResponse fetchJobDetails(Long companyId, Job job);
 
-    void startJob(Job job, Long userId, LocalDateTime startAt);
+    Job startJob(Job job, Long userId, LocalDateTime startAt);
 
-    void stopJob(Job job, Long userId, LocalDateTime stopAt);
+    Job stopJob(Job job, Long userId, LocalDateTime stopAt);
 
-    void pauseJob(Job job, Long userId, LocalDateTime pauseAt);
+    Job pauseJob(Job job, Long userId, LocalDateTime pauseAt);
 
-    void resumeJob(Job job, Long userId, LocalDateTime resumeAt);
+    Job resumeJob(Job job, Long userId, LocalDateTime resumeAt);
 
-    void cancelJob(Job job, Long userId, LocalDateTime cancelAt);
+    Job cancelJob(Job job, Long userId, LocalDateTime cancelAt);
 
-    void addEmployeeToJob(Job job, Long userId, LocalDateTime startAt);
+    Job addEmployeeToJob(Job job, Long userId, LocalDateTime startAt);
 
-    void removeEmployeeFromJob(Job job, Long userId, LocalDateTime stopAt);
+    Job removeEmployeeFromJob(Job job, Long userId, LocalDateTime stopAt);
 
     Duration jobTotalTime(Job job);
 
