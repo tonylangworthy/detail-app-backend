@@ -120,13 +120,9 @@ public class JobServiceImpl implements JobService {
 
         List<JobAction> jobActions = job.getJobActions();
         logger.info(jobActions.toString());
-        Optional<JobAction> optionalAction = jobActions.stream()
-                .filter(jobAction -> {
-                    logger.info("UserID: " + jobAction.getUser().getId());
-                    return jobAction.getUser().getId().equals(userId);
-                })
-                .findFirst();
-        if(optionalAction.isPresent()) {
+
+
+        if(isUserPresent(jobActions, userId)) {
             throw new InvalidJobActionException(("This employee is already assigned to this job"));
         }
         else {
@@ -358,5 +354,15 @@ public class JobServiceImpl implements JobService {
 
 
         return jobDetailsResponse;
+    }
+
+    // Not sure if this should be the way to do this.
+    public boolean isUserPresent(List<JobAction> jobActions, Long userId) {
+
+        return jobActions.stream()
+                .anyMatch(jobAction -> {
+                    logger.info("UserID: " + jobAction.getUser().getId());
+                    return jobAction.getUser().getId().equals(userId);
+                });
     }
 }
