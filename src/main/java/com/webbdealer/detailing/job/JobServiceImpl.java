@@ -122,7 +122,7 @@ public class JobServiceImpl implements JobService {
         logger.info(jobActions.toString());
 
 
-        if(isUserPresent(jobActions, userId)) {
+        if(hasUserStartedJob(jobActions, userId)) {
             throw new InvalidJobActionException(("This employee is already assigned to this job"));
         }
         else {
@@ -357,12 +357,15 @@ public class JobServiceImpl implements JobService {
     }
 
     // Not sure if this should be the way to do this.
-    public boolean isUserPresent(List<JobAction> jobActions, Long userId) {
+    public boolean hasUserStartedJob(List<JobAction> jobActions, Long userId) {
 
         return jobActions.stream()
                 .anyMatch(jobAction -> {
                     logger.info("UserID: " + jobAction.getUser().getId());
-                    return jobAction.getUser().getId().equals(userId);
+                    if(jobAction.getAction().equals(Action.START) || jobAction.getAction().equals(Action.RESUME)) {
+                        return jobAction.getUser().getId().equals(userId);
+                    }
+                    return false;
                 });
     }
 }
