@@ -1,5 +1,7 @@
 package com.webbdealer.detailing.job;
 
+import com.webbdealer.detailing.employee.EmployeeService;
+import com.webbdealer.detailing.employee.dao.User;
 import com.webbdealer.detailing.job.dao.Action;
 import com.webbdealer.detailing.job.dao.Job;
 import com.webbdealer.detailing.job.dao.JobStatus;
@@ -17,9 +19,11 @@ import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import javax.persistence.EntityNotFoundException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/jobs")
@@ -29,9 +33,12 @@ public class JobController {
 
     private JobService jobService;
 
+    private EmployeeService employeeService;
+
     @Autowired
-    public JobController(JobService jobService) {
+    public JobController(JobService jobService, EmployeeService employeeService) {
         this.jobService = jobService;
+        this.employeeService = employeeService;
     }
 
     @PostMapping("")
@@ -104,6 +111,7 @@ public class JobController {
         Authentication auth = context.getAuthentication();
 
         JwtClaim userDetails = (JwtClaim) auth.getPrincipal();
+        Long userId = userDetails.getUserId();
 
         String output = "";
         String jobAction = jobActionRequest.getAction().trim().toLowerCase();
@@ -112,28 +120,29 @@ public class JobController {
         System.out.println(jobActionRequest.getActionAt());
 
         Job job = jobService.fetchById(userDetails.getCompanyId(), id);
-
+        Optional<User> optionalUser = employeeService.fetchById(userId);
+        User user = optionalUser.orElseThrow(() -> new EntityNotFoundException("User with id of ["+userId+"] not found!"));
 
         switch (jobAction) {
             case "start":
                 output = "job started";
-                jobService.startJob(job, userDetails.getUserId(), actionAt);
+                jobService.startJob(job, user, actionAt);
                 break;
             case "stop":
                 output = "job stopped";
-                jobService.stopJob(job, userDetails.getUserId(), actionAt);
+                jobService.stopJob(job, user, actionAt);
                 break;
             case "pause":
                 output = "job paused";
-                jobService.pauseJob(job, userDetails.getUserId(), actionAt);
+                jobService.pauseJob(job, user, actionAt);
                 break;
             case "resume":
                 output = "job resumed";
-                jobService.resumeJob(job, userDetails.getUserId(), actionAt);
+                jobService.resumeJob(job, user, actionAt);
                 break;
             case "cancel":
                 output = "job canceled";
-                jobService.cancelJob(job, userDetails.getUserId(), actionAt);
+                jobService.cancelJob(job, user, actionAt);
                 break;
             default:
                 output = "invalid action!";

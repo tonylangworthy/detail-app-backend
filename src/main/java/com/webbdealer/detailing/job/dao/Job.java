@@ -66,7 +66,7 @@ public class Job extends BaseEntity implements Serializable {
 //    private List<User> employees = new ArrayList<>();
 
     @OneToMany(mappedBy = "job")
-    private List<JobAction> jobActions;
+    private List<JobAction> jobActions = new ArrayList<>();
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(

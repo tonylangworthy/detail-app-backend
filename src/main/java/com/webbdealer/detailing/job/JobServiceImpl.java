@@ -36,10 +36,7 @@ import java.time.temporal.ChronoField;
 import java.time.temporal.ChronoUnit;
 import java.time.temporal.Temporal;
 import java.time.temporal.TemporalField;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 @Service
 public class JobServiceImpl implements JobService {
@@ -113,7 +110,7 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public Job startJob(Job job, Long userId, LocalDateTime startAt) {
+    public Job startJob(Job job, User user, LocalDateTime startAt) {
         // 1. Is this user already working this job?
         // if yes, throw exception
         // 2. Is this user working another active job?
@@ -125,36 +122,56 @@ public class JobServiceImpl implements JobService {
         logger.info(jobActions.toString());
 
         // This should never happen since the stopJob method marks the job as COMPLETED
-        if(hasJobEnded(jobActions, userId)) {
+        if(hasJobEnded(jobActions)) {
+            logger.info("Job has already been completed");
             throw new InvalidJobActionException(("This job has already been completed."));
         }
 
 
-        if(hasUserStartedJob(jobActions, userId)) {
-            throw new InvalidJobActionException(("This employee is already assigned to this job."));
+        if(hasEmployeeStartedJob(jobActions, user.getId())) {
+            logger.info("This employee has already started this job.");
+            throw new InvalidJobActionException(("This employee has already started this job."));
         }
         else {
+            job.getJobActions().add(new JobAction(startAt, Action.START, job, user));
             job.setJobStatus(JobStatus.ACTIVE);
         }
         return job;
     }
 
     @Override
-    public Job stopJob(Job job, Long userId, LocalDateTime stopAt) {
+    public Job stopJob(Job job, User user, LocalDateTime stopAt) {
         // 1. Has job been started?
         // If no, throw exception (job hasn't been started yet!
+        List<JobAction> jobActions = job.getJobActions();
 
+        if(hasJobEnded(jobActions)) {
+            logger.info("Job has already been completed");
+            throw new InvalidJobActionException(("This job has already been completed."));
+        }
+        else if(job.getJobStatus().equals(JobStatus.PENDING)
+                || job.getJobStatus().equals(JobStatus.COMPLETED)
+                || job.getJobStatus().equals(JobStatus.PAUSED)) {
+
+            logger.info("Job cannot be stopped");
+            throw new InvalidJobActionException(("This job cannot be stopped at this time."));
+        }
+        else if(numberOfEmployeesOnJob(jobActions) == 1) {
+            job.getJobActions().add(new JobAction(stopAt, Action.STOP, job, user));
+            job.setJobStatus(JobStatus.COMPLETED);
+
+        }
         // If yes,
         // 2. Are there any other users on this job?
         // If yes, job stays active
         // If no, mark job as completed
 
         // DO NOT ALLOW JOB TO STOP IF THERE ARE OTHER USERS WORKING ON IT
-        return null;
+        return job;
     }
 
     @Override
-    public Job pauseJob(Job job, Long userId, LocalDateTime pauseAt) {
+    public Job pauseJob(Job job, User user, LocalDateTime pauseAt) {
         // 1. Has job been started?
         // If yes, job can be paused
         // If no, throw exception (job hasn't been started yet!)
@@ -166,7 +183,7 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public Job resumeJob(Job job, Long userId, LocalDateTime resumeAt) {
+    public Job resumeJob(Job job, User user, LocalDateTime resumeAt) {
         // 1. Has job been started?
         // If yes, has job been paused?
         // If yes, then job can be resumed
@@ -177,20 +194,20 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public Job cancelJob(Job job, Long userId, LocalDateTime cancelAt) {
+    public Job cancelJob(Job job, User user, LocalDateTime cancelAt) {
         // ONLY ADMIN OR MANAGER CAN CANCEL JOB
         return null;
     }
 
     @Override
-    public Job addEmployeeToJob(Job job, Long userId, LocalDateTime startAt) {
+    public Job addEmployeeToJob(Job job, User user, LocalDateTime startAt) {
         // Add employee to job.
         // If job is currently pending, mark job as active
         return null;
     }
 
     @Override
-    public Job removeEmployeeFromJob(Job job, Long userId, LocalDateTime stopAt) {
+    public Job removeEmployeeFromJob(Job job, User user, LocalDateTime stopAt) {
         // Remove employee from job.
         // If job is active, and there are no other employees working the job
         // set the job status to paused
@@ -364,14 +381,14 @@ public class JobServiceImpl implements JobService {
         return jobDetailsResponse;
     }
 
-    public boolean hasJobEnded(List<JobAction> jobActions, Long userId) {
+    public boolean hasJobEnded(List<JobAction> jobActions) {
         // If any actions for this job equal STOP, this job has ended
         return jobActions.stream()
                 .anyMatch(jobAction -> jobAction.getAction().equals(Action.STOP));
     }
 
     // Not sure if this should be the way to do this.
-    public boolean hasUserStartedJob(List<JobAction> jobActions, Long userId) {
+    public boolean hasEmployeeStartedJob(List<JobAction> jobActions, Long userId) {
 
         return jobActions.stream()
                 .anyMatch(jobAction -> {
@@ -381,5 +398,12 @@ public class JobServiceImpl implements JobService {
                     }
                     return false;
                 });
+    }
+
+    public int numberOfEmployeesOnJob(List<JobAction> jobActions) {
+
+        Set<Long> employeeIds = new HashSet<>();
+        jobActions.forEach(jobAction -> employeeIds.add(jobAction.getUser().getId()));
+        return employeeIds.size();
     }
 }

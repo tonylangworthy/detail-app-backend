@@ -1,5 +1,6 @@
 package com.webbdealer.detailing.job;
 
+import com.webbdealer.detailing.employee.dao.User;
 import com.webbdealer.detailing.job.dao.Job;
 import com.webbdealer.detailing.job.dao.JobStatus;
 import com.webbdealer.detailing.job.dto.CreateJobRequest;
@@ -22,19 +23,19 @@ public interface JobService {
 
     JobDetailsResponse fetchJobDetails(Long companyId, Job job);
 
-    Job startJob(Job job, Long userId, LocalDateTime startAt);
+    Job startJob(Job job, User user, LocalDateTime startAt);
 
-    Job stopJob(Job job, Long userId, LocalDateTime stopAt);
+    Job stopJob(Job job, User user, LocalDateTime stopAt);
 
-    Job pauseJob(Job job, Long userId, LocalDateTime pauseAt);
+    Job pauseJob(Job job, User user, LocalDateTime pauseAt);
 
-    Job resumeJob(Job job, Long userId, LocalDateTime resumeAt);
+    Job resumeJob(Job job, User user, LocalDateTime resumeAt);
 
-    Job cancelJob(Job job, Long userId, LocalDateTime cancelAt);
+    Job cancelJob(Job job, User user, LocalDateTime cancelAt);
 
-    Job addEmployeeToJob(Job job, Long userId, LocalDateTime startAt);
+    Job addEmployeeToJob(Job job, User user, LocalDateTime startAt);
 
-    Job removeEmployeeFromJob(Job job, Long userId, LocalDateTime stopAt);
+    Job removeEmployeeFromJob(Job job, User user, LocalDateTime stopAt);
 
     Duration jobTotalTime(Job job);
 
