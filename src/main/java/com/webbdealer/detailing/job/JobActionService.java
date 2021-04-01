@@ -14,6 +14,6 @@ public interface JobActionService {
 
     List<JobAction> fetchActionsByJobId(Long jobId);
 
-    void updateJobStatus(Long jobId, Long userId, LocalDateTime actionAt, Action action);
+    void saveJobStatus(Long jobId, Long userId, LocalDateTime actionAt, Action action);
 
 }

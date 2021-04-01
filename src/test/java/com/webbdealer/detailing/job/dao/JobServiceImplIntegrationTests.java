@@ -90,12 +90,12 @@ public class JobServiceImplIntegrationTests {
     }
 
     @Test
-    public void startJob_Test_ShouldThrow_InvalidJobActionException() {
+    public void startJob_UserAlreadyAssigned_InvalidJobActionException_Test() {
         List<JobAction> jobActionList = new ArrayList<>();
         jobActionList.add(new JobAction(LocalDateTime.of(yesterday, yesterdayStartTime), Action.START, job, user1));
-        jobActionList.add(new JobAction(LocalDateTime.of(yesterday, yesterdayStopTime), Action.START, job, user1));
-        jobActionList.add(new JobAction(LocalDateTime.of(today, todayStartTime), Action.START, job, user2));
-        jobActionList.add(new JobAction(LocalDateTime.of(today, todayStopTime), Action.START, job, user1));
+        jobActionList.add(new JobAction(LocalDateTime.of(yesterday, yesterdayStopTime), Action.STOP, job, user1));
+//        jobActionList.add(new JobAction(LocalDateTime.of(today, todayStartTime), Action.START, job, user2));
+//        jobActionList.add(new JobAction(LocalDateTime.of(today, todayStopTime), Action.STOP, job, user1));
         job.setJobActions(jobActionList);
 
         assertThrows(InvalidJobActionException.class, () -> {
@@ -104,6 +104,23 @@ public class JobServiceImplIntegrationTests {
 
 
 //        assertEquals(JobStatus.ACTIVE, newJob.getJobStatus());
+    }
+
+    @Test
+    public void startJob_AlreadyStarted_InvalidJobActionException_Test() {
+
+        List<JobAction> jobActionList = new ArrayList<>();
+        jobActionList.add(new JobAction(LocalDateTime.of(yesterday, yesterdayStartTime), Action.START, job, user1));
+        jobActionList.add(new JobAction(LocalDateTime.of(yesterday, yesterdayStopTime), Action.STOP, job, user1));
+        jobActionList.add(new JobAction(LocalDateTime.of(today, todayStartTime), Action.START, job, user2));
+        jobActionList.add(new JobAction(LocalDateTime.of(today, todayStopTime), Action.STOP, job, user1));
+        job.setJobActions(jobActionList);
+
+        assertThrows(InvalidJobActionException.class, () -> {
+            jobService.startJob(job, user1.getId(), LocalDateTime.of(2021, 03, 30, 8, 30, 0));
+        });
+
+        fail();
     }
 
     @Test

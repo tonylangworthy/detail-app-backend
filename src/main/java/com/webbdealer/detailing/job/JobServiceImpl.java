@@ -116,14 +116,22 @@ public class JobServiceImpl implements JobService {
     public Job startJob(Job job, Long userId, LocalDateTime startAt) {
         // 1. Is this user already working this job?
         // if yes, throw exception
+        // 2. Is this user working another active job?
+        // If yes, do something about it!
+        // A user should only be active on one job at a time
         // else, mark this job as active
 
         List<JobAction> jobActions = job.getJobActions();
         logger.info(jobActions.toString());
 
+        // This should never happen since the stopJob method marks the job as COMPLETED
+        if(hasJobEnded(jobActions, userId)) {
+            throw new InvalidJobActionException(("This job has already been completed."));
+        }
+
 
         if(hasUserStartedJob(jobActions, userId)) {
-            throw new InvalidJobActionException(("This employee is already assigned to this job"));
+            throw new InvalidJobActionException(("This employee is already assigned to this job."));
         }
         else {
             job.setJobStatus(JobStatus.ACTIVE);
@@ -354,6 +362,12 @@ public class JobServiceImpl implements JobService {
 
 
         return jobDetailsResponse;
+    }
+
+    public boolean hasJobEnded(List<JobAction> jobActions, Long userId) {
+        // If any actions for this job equal STOP, this job has ended
+        return jobActions.stream()
+                .anyMatch(jobAction -> jobAction.getAction().equals(Action.STOP));
     }
 
     // Not sure if this should be the way to do this.

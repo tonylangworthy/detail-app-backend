@@ -64,7 +64,7 @@ public class JobActionServiceImpl implements JobActionService {
     }
 
     @Override
-    public void updateJobStatus(Long jobId, Long userId, LocalDateTime startAt, Action action) {
+    public void saveJobStatus(Long jobId, Long userId, LocalDateTime startAt, Action action) {
         List<JobAction> jobActions = fetchActionsByJobId(jobId);
 
         // 1. Has job been started at all?
