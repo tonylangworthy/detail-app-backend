@@ -110,7 +110,7 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public Job startJob(Job job, User user, LocalDateTime startAt) {
+    public Job startJob(Job job, User user, LocalDateTime startAt) throws InvalidJobActionException {
         // 1. Is this user already working this job?
         // if yes, throw exception
         // 2. Is this user working another active job?
@@ -140,12 +140,18 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public Job stopJob(Job job, User user, LocalDateTime stopAt) {
+    public Job stopJob(Job job, User user, LocalDateTime stopAt) throws InvalidJobActionException {
         // 1. Has job been started?
         // If no, throw exception (job hasn't been started yet!
         List<JobAction> jobActions = job.getJobActions();
 
-        if(hasJobEnded(jobActions)) {
+        boolean hasEmployeeStartedJob = hasEmployeeStartedJob(jobActions, user.getId());
+
+        if(!hasEmployeeStartedJob) {
+            logger.info("Job hasn't been started yet.");
+            throw new InvalidJobActionException("Job hasn't been started yet.");
+        }
+        else if(hasJobEnded(jobActions)) {
             logger.info("Job has already been completed");
             throw new InvalidJobActionException(("This job has already been completed."));
         }
@@ -157,10 +163,9 @@ public class JobServiceImpl implements JobService {
             throw new InvalidJobActionException(("This job cannot be stopped at this time."));
         }
         else if(numberOfEmployeesOnJob(jobActions) == 1) {
-            job.getJobActions().add(new JobAction(stopAt, Action.STOP, job, user));
             job.setJobStatus(JobStatus.COMPLETED);
-
         }
+        job.getJobActions().add(new JobAction(stopAt, Action.STOP, job, user));
         // If yes,
         // 2. Are there any other users on this job?
         // If yes, job stays active
@@ -390,6 +395,9 @@ public class JobServiceImpl implements JobService {
     // Not sure if this should be the way to do this.
     public boolean hasEmployeeStartedJob(List<JobAction> jobActions, Long userId) {
 
+        logger.info("jobActions size: " + jobActions.size());
+        if(jobActions.size() == 0) return false;
+
         return jobActions.stream()
                 .anyMatch(jobAction -> {
                     logger.info("UserID: " + jobAction.getUser().getId());
@@ -404,6 +412,7 @@ public class JobServiceImpl implements JobService {
 
         Set<Long> employeeIds = new HashSet<>();
         jobActions.forEach(jobAction -> employeeIds.add(jobAction.getUser().getId()));
+        logger.info("Number of employees on this job: " + employeeIds.size());
         return employeeIds.size();
     }
 }
