@@ -5,17 +5,14 @@ import com.webbdealer.detailing.company.dao.Company;
 import com.webbdealer.detailing.customer.CustomerService;
 import com.webbdealer.detailing.customer.dao.Customer;
 import com.webbdealer.detailing.customer.dto.CustomerCreateForm;
-import com.webbdealer.detailing.customer.dto.CustomerResponse;
 import com.webbdealer.detailing.employee.EmployeeService;
 import com.webbdealer.detailing.employee.dao.User;
-import com.webbdealer.detailing.employee.dto.EmployeeResponse;
 import com.webbdealer.detailing.job.dao.*;
 import com.webbdealer.detailing.job.dto.CreateJobRequest;
 import com.webbdealer.detailing.job.dto.JobItemResponse;
 import com.webbdealer.detailing.job.dto.JobDetailsResponse;
 import com.webbdealer.detailing.recondition.ReconditionService;
 import com.webbdealer.detailing.recondition.dao.Recondition;
-import com.webbdealer.detailing.recondition.dto.ReconditionServiceResponse;
 import com.webbdealer.detailing.shared.TimezoneConverter;
 import com.webbdealer.detailing.vehicle.VehicleLookupService;
 import com.webbdealer.detailing.vehicle.VehicleService;
@@ -29,13 +26,9 @@ import org.springframework.stereotype.Service;
 import javax.persistence.EntityNotFoundException;
 import javax.transaction.Transactional;
 import java.time.Duration;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.temporal.ChronoField;
 import java.time.temporal.ChronoUnit;
-import java.time.temporal.Temporal;
-import java.time.temporal.TemporalField;
 import java.util.*;
 
 @Service
@@ -180,11 +173,35 @@ public class JobServiceImpl implements JobService {
         // 1. Has job been started?
         // If yes, job can be paused
         // If no, throw exception (job hasn't been started yet!)
+        List<JobAction> jobActions = job.getJobActions();
 
-        // Store which job will be paused, which user paused it, and what time it was paused
+        boolean hasEmployeeStartedJob = hasEmployeeStartedJob(jobActions, user.getId());
 
-        // When job is paused, the time for all users on this job stops
-        return null;
+        if(!hasEmployeeStartedJob) {
+            logger.info("Job hasn't been started yet.");
+            throw new InvalidJobActionException("Job hasn't been started yet.");
+        }
+        else if(hasJobEnded(jobActions)) {
+            logger.info("Job has already been completed");
+            throw new InvalidJobActionException(("This job has already been completed."));
+        }
+        else if(job.getJobStatus().equals(JobStatus.PENDING)
+                || job.getJobStatus().equals(JobStatus.COMPLETED)) {
+
+            logger.info("Job cannot be paused");
+            throw new InvalidJobActionException(("This job cannot be stopped at this time."));
+        }
+        else if(job.getJobStatus().equals(JobStatus.PAUSED) || isJobPaused(jobActions)) {
+            logger.info("Job is already paused");
+            throw new InvalidJobActionException(("This job is already paused."));
+        }
+        else if(numberOfEmployeesOnJob(jobActions) == 1) {
+            job.setJobStatus(JobStatus.PAUSED);
+            // Store which job will be paused, which user paused it, and what time it was paused
+            job.getJobActions().add(new JobAction(pauseAt, Action.PAUSE, job, user));
+        }
+        // When job is paused by admin, the time for all users on this job stops
+        return job;
     }
 
     @Override
@@ -193,6 +210,7 @@ public class JobServiceImpl implements JobService {
         // If yes, has job been paused?
         // If yes, then job can be resumed
         // If no, throw exception (cannot resume this job)
+        if(job.getJobStatus().equals(JobStatus.PENDING) || )
 
         //
         return null;
@@ -386,6 +404,10 @@ public class JobServiceImpl implements JobService {
         return jobDetailsResponse;
     }
 
+    public boolean hasJobBeenStarted(List<JobAction> jobActions) {
+
+    }
+
     public boolean hasJobEnded(List<JobAction> jobActions) {
         // If any actions for this job equal STOP, this job has ended
         return jobActions.stream()
@@ -406,6 +428,17 @@ public class JobServiceImpl implements JobService {
                     }
                     return false;
                 });
+    }
+
+    public boolean isJobPaused(List<JobAction> jobActions) {
+//        List<JobAction> filteredActions = new ArrayList<>();
+        jobActions.sort(Comparator.comparing(JobAction::getJobActionAt));
+        jobActions.forEach(jobAction -> logger.info("action at: " + jobAction.getJobActionAt()));
+
+        JobAction lastAction = jobActions.get(jobActions.size()-1);
+        // If the last action is RESUME, it can be PAUSED
+        if(lastAction.getAction().equals(Action.RESUME)) return false;
+        return true;
     }
 
     public int numberOfEmployeesOnJob(List<JobAction> jobActions) {

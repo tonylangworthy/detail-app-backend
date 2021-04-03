@@ -5,18 +5,13 @@ import com.webbdealer.detailing.customer.CustomerService;
 import com.webbdealer.detailing.employee.EmployeeService;
 import com.webbdealer.detailing.employee.dao.User;
 import com.webbdealer.detailing.job.InvalidJobActionException;
-import com.webbdealer.detailing.job.JobService;
 import com.webbdealer.detailing.job.JobServiceImpl;
 import com.webbdealer.detailing.recondition.ReconditionService;
 import com.webbdealer.detailing.vehicle.VehicleLookupService;
 import com.webbdealer.detailing.vehicle.VehicleService;
-import com.webbdealer.detailing.vehicle.dao.Vehicle;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.springframework.boot.test.context.SpringBootTest;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -25,7 +20,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
 
 //@SpringBootTest
 public class JobServiceImplIntegrationTests {
@@ -204,8 +198,54 @@ public class JobServiceImplIntegrationTests {
     }
 
     @Test
+    public void pauseJob_AlreadyPaused_InvalidJobActionException_Test() {
+
+        List<JobAction> jobActionList = new ArrayList<>();
+        jobActionList.add(new JobAction(LocalDateTime.of(yesterday, yesterdayStartTime), Action.START, job, user1));
+        jobActionList.add(new JobAction(LocalDateTime.of(yesterday, yesterdayPauseTime), Action.PAUSE, job, user1));
+        job.setJobActions(jobActionList);
+        job.setJobStatus(JobStatus.ACTIVE);
+
+        assertThrows(InvalidJobActionException.class, () ->
+                jobService.pauseJob(job, user1, LocalDateTime.of(2021, 3, 31, 6, 30, 0)));
+    }
+
+    @Test
     public void pauseJob_Test() {
-        fail();
+        List<JobAction> jobActionList = new ArrayList<>();
+        jobActionList.add(new JobAction(LocalDateTime.of(yesterday, yesterdayStartTime), Action.START, job, user1));
+        jobActionList.add(new JobAction(LocalDateTime.of(yesterday, yesterdayPauseTime), Action.PAUSE, job, user1));
+        jobActionList.add(new JobAction(LocalDateTime.of(today, todayResumeTime), Action.RESUME, job, user1));
+        job.setJobActions(jobActionList);
+        job.setJobStatus(JobStatus.ACTIVE);
+
+        Job updatedJob = jobService.pauseJob(job, user1, LocalDateTime.of(2021, 3, 31, 6, 30, 0));
+
+        assertEquals(JobStatus.PAUSED, updatedJob.getJobStatus());
+    }
+
+    @Test
+    public void canBePaused_lastActionResume_Test() {
+        List<JobAction> jobActionList = new ArrayList<>();
+        jobActionList.add(new JobAction(LocalDateTime.of(yesterday, yesterdayPauseTime), Action.PAUSE, job, user1));
+        jobActionList.add(new JobAction(LocalDateTime.of(yesterday, yesterdayStartTime), Action.START, job, user1));
+        jobActionList.add(new JobAction(LocalDateTime.of(yesterday, yesterdayResumeTime), Action.RESUME, job, user1));
+        jobActionList.add(new JobAction(LocalDateTime.of(today, todayResumeTime), Action.RESUME, job, user1));
+        jobActionList.add(new JobAction(LocalDateTime.of(today, todayPauseTime), Action.PAUSE, job, user1));
+
+        assertFalse(jobService.isJobPaused(jobActionList));
+    }
+
+    @Test
+    public void canBePaused_lastActionPaused_Test() {
+        // Cannot be paused since the last action was a pause
+        List<JobAction> jobActionList = new ArrayList<>();
+        jobActionList.add(new JobAction(LocalDateTime.of(yesterday, yesterdayPauseTime), Action.PAUSE, job, user1));
+        jobActionList.add(new JobAction(LocalDateTime.of(yesterday, yesterdayStartTime), Action.START, job, user1));
+        jobActionList.add(new JobAction(LocalDateTime.of(yesterday, yesterdayResumeTime), Action.RESUME, job, user1));
+        jobActionList.add(new JobAction(LocalDateTime.of(today, todayPauseTime), Action.PAUSE, job, user1));
+
+        assertTrue(jobService.isJobPaused(jobActionList));
     }
 
     @Test
