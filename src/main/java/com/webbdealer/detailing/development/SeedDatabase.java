@@ -111,49 +111,57 @@ public class SeedDatabase implements ApplicationListener<ContextRefreshedEvent> 
 			String c1user1Email = "andy@midmodents.com";
 			String c1user1Phone = "5735501234";
 
-			User c1user1 = new User();
-			c1user1.setFirstName("Andy");
-			c1user1.setLastName("Ott");
-			c1user1.setEmail(c1user1Email);
-			c1user1.setPhone(c1user1Phone);
-			c1user1.setPassword(passwordEncoder.encode("12345"));
-			c1user1.setCompany(company1);
+			User c1user1 = new User.UserBuilder()
+				.firstName("Andy")
+				.lastName("Ott")
+				.email(c1user1Email)
+				.phone(c1user1Phone)
+				.userName("aott")
+				.password(passwordEncoder.encode("12345"))
+				.company(company1)
+				.build();
 			employeeService.createAdmin(c1user1);
 
 			String c1user2Email = "tony@webbdealer.com";
 			String c1user2Phone = "5735508456";
 
-			User c1user2 = new User();
-			c1user2.setFirstName("Tony");
-			c1user2.setLastName("Langworthy");
-			c1user2.setEmail(c1user2Email);
-			c1user2.setPhone(c1user2Phone);
-			c1user2.setPassword(passwordEncoder.encode("Acura21"));
-			c1user2.setCompany(company1);
+			User c1user2 = new User.UserBuilder()
+					.firstName("Tony")
+					.lastName("Langworthy")
+					.email(c1user2Email)
+					.phone(c1user2Phone)
+					.userName("tlangworthy")
+					.password(passwordEncoder.encode("Acura21"))
+					.company(company1)
+					.build();
 			employeeService.createManager(c1user2);
 
 			String c1user3Email = "khigby@gmail.com";
 			String c1user3Phone = "5732911234";
 
-			User c1user3 = new User();
-			c1user3.setFirstName("Keith");
-			c1user3.setLastName("Higby");
-			c1user3.setEmail(c1user3Email);
-			c1user3.setPhone(c1user3Phone);
-			c1user3.setPassword(passwordEncoder.encode("password"));
-			c1user3.setCompany(company1);
+			User c1user3 = new User.UserBuilder()
+					.firstName("Keith")
+					.lastName("Higby")
+					.email(c1user3Email)
+					.phone(c1user3Phone)
+					.userName("khigby")
+					.password(passwordEncoder.encode("password"))
+					.company(company1)
+					.build();
 			employeeService.storeEmployee(c1user3);
 
 			String c1user4Email = "josh1111@gmail.com";
 			String c1user4Phone = "5736911221";
 
-			User c1user4 = new User();
-			c1user4.setFirstName("Joshua");
-			c1user4.setLastName("Chappell");
-			c1user4.setEmail(c1user4Email);
-			c1user4.setPhone(c1user4Phone);
-			c1user4.setPassword(passwordEncoder.encode("password"));
-			c1user4.setCompany(company1);
+			User c1user4 = new User.UserBuilder()
+					.firstName("Joshua")
+					.lastName("Chappell")
+					.email(c1user4Email)
+					.phone(c1user4Phone)
+					.userName("jchappell")
+					.password(passwordEncoder.encode("pasword"))
+					.company(company1)
+					.build();
 			employeeService.storeEmployee(c1user4);
 
 			// ---------------------------------------------------------------------
@@ -175,57 +183,67 @@ public class SeedDatabase implements ApplicationListener<ContextRefreshedEvent> 
 
 				String c2user1Email = "brandy@slickwhips.com";
 				String c2user1Phone = "5735541117";
-				User c2user1 = new User();
-				c2user1.setFirstName("Brandy");
-				c2user1.setLastName("Elkins");
-				c2user1.setEmail(c2user1Email);
-				c2user1.setPhone(c2user1Phone);
-				c2user1.setPassword(passwordEncoder.encode("belkins"));
-				c2user1.setCompany(company2);
+				User c2user1 = new User.UserBuilder()
+						.firstName("Brandy")
+						.lastName("Elkins")
+						.email(c2user1Email)
+						.phone(c2user1Phone)
+						.userName("belkins")
+						.password(passwordEncoder.encode("belkins"))
+						.company(company2)
+						.build();
 				employeeService.createAdmin(c2user1);
 
 				String c2user2Email = "brayjames@gmail.com";
 				String c2user2Phone = "5735504455";
-				User c2user2 = new User();
-				c2user2.setFirstName("Brayden");
-				c2user2.setLastName("James");
-				c2user2.setEmail(c2user2Email);
-				c2user2.setPhone(c2user2Phone);
-				c2user2.setPassword(passwordEncoder.encode("bjames"));
-				c2user2.setCompany(company2);
+				User c2user2 = new User.UserBuilder()
+						.firstName("Brayden")
+						.lastName("James")
+						.email(c2user2Email)
+						.phone(c2user2Phone)
+						.userName("bjames")
+						.password(passwordEncoder.encode("bjames"))
+						.company(company2)
+						.build();
 				employeeService.createManager(c2user2);
 
 				String c2user3Email = "madisongrace@gmail.com";
 				String c2user3Phone = "5732914447";
-				User c2user3 = new User();
-				c2user3.setFirstName("Madison");
-				c2user3.setLastName("Grace");
-				c2user3.setEmail(c2user3Email);
-				c2user3.setPhone(c2user3Phone);
-				c2user3.setPassword(passwordEncoder.encode("mgrace"));
-				c2user3.setCompany(company2);
+				User c2user3 = new User.UserBuilder()
+						.firstName("Madison")
+						.lastName("Grace")
+						.email(c2user3Email)
+						.phone(c2user3Phone)
+						.userName("mgrace")
+						.password(passwordEncoder.encode("mgrace"))
+						.company(company2)
+						.build();
 				employeeService.storeEmployee(c2user3);
 
 				String c2user4Email = "audriefaith@gmail.com";
 				String c2user4Phone = "5736918889";
-				User c2user4 = new User();
-				c2user4.setFirstName("Audrie");
-				c2user4.setLastName("Faith");
-				c2user4.setEmail(c2user4Email);
-				c2user4.setPhone(c2user4Phone);
-				c2user4.setPassword(passwordEncoder.encode("afaith"));
-				c2user4.setCompany(company2);
+				User c2user4 = new User.UserBuilder()
+						.firstName("Audrie")
+						.lastName("Faith")
+						.email(c2user3Email)
+						.phone(c2user3Phone)
+						.userName("afaith")
+						.password(passwordEncoder.encode("afaith"))
+						.company(company2)
+						.build();
 				employeeService.storeEmployee(c2user4);
 
 				String c2user5Email = "suepearon@gmail.com";
 				String c2user5Phone = "5736917894";
-				User c2user5 = new User();
-				c2user5.setFirstName("Susan");
-				c2user5.setLastName("Pearon");
-				c2user5.setEmail(c2user5Email);
-				c2user5.setPhone(c2user5Phone);
-				c2user5.setPassword(passwordEncoder.encode("spearon"));
-				c2user5.setCompany(company2);
+				User c2user5 = new User.UserBuilder()
+						.firstName("Susan")
+						.lastName("Pearon")
+						.email(c2user4Email)
+						.phone(c2user4Phone)
+						.userName("spearon")
+						.password(passwordEncoder.encode("spearon"))
+						.company(company2)
+						.build();
 				employeeService.storeEmployee(c2user5);
 
 			}
