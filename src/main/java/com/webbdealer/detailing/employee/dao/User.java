@@ -43,6 +43,9 @@ public class User implements Serializable {
     @Column(name = "email")
     private String email;
 
+    @Column(name = "username")
+    private String userName;
+
     @Column(name = "password")
     private String password;
 
@@ -100,6 +103,7 @@ public class User implements Serializable {
         this.phone = builder.phone;
         this.isMobile = builder.isMobile;
         this.email = builder.email;
+        this.userName = builder.userName;
         this.password = builder.password;
         this.pin = builder.pin;
         this.company = builder.company;
@@ -162,6 +166,10 @@ public class User implements Serializable {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public String getUserName() {
+        return userName;
     }
 
     public String getPassword() {
@@ -233,12 +241,12 @@ public class User implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;
-        return isMobile == user.isMobile && deleted == user.deleted && Objects.equals(id, user.id) && Objects.equals(firstName, user.firstName) && Objects.equals(middle, user.middle) && Objects.equals(lastName, user.lastName) && Objects.equals(phone, user.phone) && Objects.equals(email, user.email) && Objects.equals(password, user.password) && Objects.equals(pin, user.pin) && Objects.equals(company, user.company) && Objects.equals(timeClocks, user.timeClocks) && Objects.equals(roles, user.roles) && Objects.equals(jobActions, user.jobActions) && Objects.equals(createdAt, user.createdAt) && Objects.equals(updatedAt, user.updatedAt);
+        return isMobile == user.isMobile && deleted == user.deleted && Objects.equals(id, user.id) && Objects.equals(firstName, user.firstName) && Objects.equals(middle, user.middle) && Objects.equals(lastName, user.lastName) && Objects.equals(phone, user.phone) && Objects.equals(email, user.email) && Objects.equals(userName, user.userName) && Objects.equals(password, user.password) && Objects.equals(pin, user.pin) && Objects.equals(company, user.company) && Objects.equals(timeClocks, user.timeClocks) && Objects.equals(roles, user.roles) && Objects.equals(jobActions, user.jobActions) && Objects.equals(createdAt, user.createdAt) && Objects.equals(updatedAt, user.updatedAt);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, firstName, middle, lastName, phone, isMobile, email, password, pin, company, timeClocks, roles, jobActions, createdAt, updatedAt, deleted);
+        return Objects.hash(id, firstName, middle, lastName, phone, isMobile, email, userName, password, pin, company, timeClocks, roles, jobActions, createdAt, updatedAt, deleted);
     }
 
     @Override
@@ -251,6 +259,7 @@ public class User implements Serializable {
                 ", phone='" + phone + '\'' +
                 ", isMobile=" + isMobile +
                 ", email='" + email + '\'' +
+                ", userName='" + userName + '\'' +
                 ", password='" + password + '\'' +
                 ", pin='" + pin + '\'' +
                 ", roles=" + roles +
@@ -275,6 +284,8 @@ public class User implements Serializable {
         private boolean isMobile;
 
         private String email;
+
+        private String userName;
 
         private String password;
 
@@ -320,6 +331,11 @@ public class User implements Serializable {
 
         public UserBuilder email(String email) {
             this.email = email;
+            return this;
+        }
+
+        public UserBuilder userName(String userName) {
+            this.userName = userName;
             return this;
         }
 
