@@ -40,6 +40,8 @@ public class JobServiceImpl implements JobService {
 
     private JobRepository jobRepository;
 
+    private JobActionService jobActionService;
+
     private VehicleService vehicleService;
 
     private VehicleLookupService vehicleLookupService;
@@ -55,6 +57,7 @@ public class JobServiceImpl implements JobService {
     @Autowired
     public JobServiceImpl(CompanyService companyService,
                           JobRepository jobRepository,
+                          JobActionService jobActionService,
                           VehicleService vehicleService,
                           VehicleLookupService vehicleLookupService,
                           CustomerService customerService,
@@ -63,6 +66,7 @@ public class JobServiceImpl implements JobService {
 
         this.companyService = companyService;
         this.jobRepository = jobRepository;
+        this.jobActionService = jobActionService;
         this.vehicleService = vehicleService;
         this.vehicleLookupService = vehicleLookupService;
         this.customerService = customerService;
@@ -103,57 +107,70 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public Job startJob(Job job, User user, LocalDateTime startAt) throws InvalidJobActionException {
+    public Job startJob(Job job, User user, LocalDateTime startAt) throws InvalidJobStatusException {
         // 1. Is this user already working this job?
         // if yes, throw exception
         // 2. Is this user working another active job?
-        // If yes, do something about it!
+        // If yes, stop that job and start this one
         // A user should only be active on one job at a time
         // else, mark this job as active
+
+        // First, job has to be in PENDING status
+        if(isJobPending(job)) {
+            job.setJobStatus(JobStatus.ACTIVE);
+
+            // Create a new action for this job
+            jobActionService.createStartAction(job, user, startAt);
+        }
+
+
 
         List<JobAction> jobActions = job.getJobActions();
         logger.info(jobActions.toString());
 
-        // This should never happen since the stopJob method marks the job as COMPLETED
-        if(hasJobEnded(jobActions)) {
+        if(isJobCompleted(job)) {
             logger.info("Job has already been completed");
             throw new InvalidJobActionException(("This job has already been completed."));
         }
-
-
-        if(hasEmployeeStartedJob(jobActions, user.getId())) {
+        else if(hasEmployeeStartedJob(jobActions, user.getId())) {
             logger.info("This employee has already started this job.");
             throw new InvalidJobActionException(("This employee has already started this job."));
         }
-        else {
-            job.getJobActions().add(new JobAction(startAt, Action.START, job, user));
-            job.setJobStatus(JobStatus.ACTIVE);
-        }
+        job.getJobActions().add(new JobAction(startAt, Action.START, job, user));
+        job.setJobStatus(JobStatus.ACTIVE);
+
         return job;
     }
 
     @Override
-    public Job stopJob(Job job, User user, LocalDateTime stopAt) throws InvalidJobActionException {
+    public Job markJobAsCompleted(Job job, User user, LocalDateTime stopAt) throws InvalidJobStatusException {
         // 1. Has job been started?
         // If no, throw exception (job hasn't been started yet!
         List<JobAction> jobActions = job.getJobActions();
 
-        boolean hasEmployeeStartedJob = hasEmployeeStartedJob(jobActions, user.getId());
+//        boolean hasEmployeeStartedJob = hasEmployeeStartedJob(jobActions, user.getId());
 
-        if(!hasEmployeeStartedJob) {
-            logger.info("Job hasn't been started yet.");
-            throw new InvalidJobActionException("Job hasn't been started yet.");
+        if(isJobPending(job)) {
+            logger.info("Job has not been started yet.");
+            throw new InvalidJobStatusException("Job has not been started yet.");
         }
-        else if(hasJobEnded(jobActions)) {
+        else if(isJobAwaitingApproval(job)) {
+            logger.info("Job is still awaiting approval.");
+            throw new InvalidJobStatusException("Job is still awaiting approval.");
+        }
+        else if(isJobCompleted(job)) {
             logger.info("Job has already been completed");
-            throw new InvalidJobActionException(("This job has already been completed."));
+            throw new InvalidJobStatusException(("This job has already been completed."));
         }
-        else if(job.getJobStatus().equals(JobStatus.PENDING)
-                || job.getJobStatus().equals(JobStatus.COMPLETED)
-                || job.getJobStatus().equals(JobStatus.PAUSED)) {
+        else if(isJobPaused(job)) {
 
-            logger.info("Job cannot be stopped");
-            throw new InvalidJobActionException(("This job cannot be stopped at this time."));
+            logger.info("Job is currently paused.");
+            throw new InvalidJobStatusException(("Job is currently paused."));
+        }
+        else if(isJobCancelled(job)) {
+
+            logger.info("Job has been cancelled.");
+            throw new InvalidJobStatusException(("Job has been cancelled."));
         }
         else if(numberOfEmployeesOnJob(jobActions) == 1) {
             job.setJobStatus(JobStatus.COMPLETED);
@@ -169,57 +186,63 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public Job pauseJob(Job job, User user, LocalDateTime pauseAt) {
+    public Job pauseJob(Job job, User user, LocalDateTime pauseAt) throws InvalidJobStatusException {
         // 1. Has job been started?
         // If yes, job can be paused
         // If no, throw exception (job hasn't been started yet!)
         List<JobAction> jobActions = job.getJobActions();
 
-        boolean hasEmployeeStartedJob = hasEmployeeStartedJob(jobActions, user.getId());
+//        boolean hasEmployeeStartedJob = hasEmployeeStartedJob(jobActions, user.getId());
 
-        if(!hasEmployeeStartedJob) {
+        if(isJobPending(job)) {
             logger.info("Job hasn't been started yet.");
-            throw new InvalidJobActionException("Job hasn't been started yet.");
+            throw new InvalidJobStatusException("Job hasn't been started yet.");
         }
-        else if(hasJobEnded(jobActions)) {
+        else if(isJobCompleted(job)) {
             logger.info("Job has already been completed");
-            throw new InvalidJobActionException(("This job has already been completed."));
+            throw new InvalidJobStatusException(("This job has already been completed."));
         }
         else if(job.getJobStatus().equals(JobStatus.PENDING)
                 || job.getJobStatus().equals(JobStatus.COMPLETED)) {
 
             logger.info("Job cannot be paused");
-            throw new InvalidJobActionException(("This job cannot be stopped at this time."));
+            throw new InvalidJobStatusException(("This job cannot be stopped at this time."));
         }
-        else if(job.getJobStatus().equals(JobStatus.PAUSED) || isJobPaused(jobActions)) {
+        else if(isJobPaused(job)) {
             logger.info("Job is already paused");
-            throw new InvalidJobActionException(("This job is already paused."));
+            throw new InvalidJobStatusException(("This job is already paused."));
         }
         else if(numberOfEmployeesOnJob(jobActions) == 1) {
             job.setJobStatus(JobStatus.PAUSED);
             // Store which job will be paused, which user paused it, and what time it was paused
-            job.getJobActions().add(new JobAction(pauseAt, Action.PAUSE, job, user));
         }
         // When job is paused by admin, the time for all users on this job stops
         return job;
     }
 
     @Override
-    public Job resumeJob(Job job, User user, LocalDateTime resumeAt) {
-        // 1. Has job been started?
-        // If yes, has job been paused?
-        // If yes, then job can be resumed
-        // If no, throw exception (cannot resume this job)
-        if(job.getJobStatus().equals(JobStatus.PENDING) || )
-
-        //
-        return null;
+    public Job resumeJob(Job job, User user, LocalDateTime resumeAt) throws InvalidJobStatusException {
+        // If job is paused, we can resume
+        if(isJobPaused(job)) {
+            job.setJobStatus(JobStatus.ACTIVE);
+        }
+        // else throw an exception
+        else {
+            logger.info("Job is not paused, so cannot be resumed.");
+            throw new InvalidJobStatusException(("Job is not paused, so cannot be resumed."));
+        }
+        return job;
     }
 
     @Override
-    public Job cancelJob(Job job, User user, LocalDateTime cancelAt) {
+    public Job cancelJob(Job job, User user, LocalDateTime cancelAt) throws InvalidJobStatusException {
         // ONLY ADMIN OR MANAGER CAN CANCEL JOB
-        return null;
+        // Job can be in any state to be cancelled
+        job.setJobStatus(JobStatus.CANCELLED);
+
+        // any actions on the job must be stopped
+
+        return job;
     }
 
     @Override
@@ -404,14 +427,36 @@ public class JobServiceImpl implements JobService {
         return jobDetailsResponse;
     }
 
-    public boolean hasJobBeenStarted(List<JobAction> jobActions) {
-
+    public boolean isJobPending(Job job) {
+        return job.getJobStatus().equals(JobStatus.PENDING);
     }
 
-    public boolean hasJobEnded(List<JobAction> jobActions) {
-        // If any actions for this job equal STOP, this job has ended
-        return jobActions.stream()
-                .anyMatch(jobAction -> jobAction.getAction().equals(Action.STOP));
+    public boolean isJobActive(Job job) {
+        return job.getJobStatus().equals(JobStatus.ACTIVE);
+    }
+
+    public boolean isJobCompleted(Job job) {
+        return job.getJobStatus().equals(JobStatus.COMPLETED);
+    }
+
+    public boolean isJobPaused(Job job) {
+//        List<JobAction> filteredActions = new ArrayList<>();
+//        jobActions.sort(Comparator.comparing(JobAction::getJobActionAt));
+//        jobActions.forEach(jobAction -> logger.info("action at: " + jobAction.getJobActionAt()));
+//
+//        JobAction lastAction = jobActions.get(jobActions.size()-1);
+//        // If the last action is RESUME, it can be PAUSED
+//        if(lastAction.getAction().equals(Action.RESUME)) return false;
+
+        return job.getJobStatus().equals(JobStatus.PAUSED);
+    }
+
+    public boolean isJobAwaitingApproval(Job job) {
+        return job.getJobStatus().equals(JobStatus.AWAITING_APPROVAL);
+    }
+
+    public boolean isJobCancelled(Job job) {
+        return job.getJobStatus().equals(JobStatus.CANCELLED);
     }
 
     // Not sure if this should be the way to do this.
@@ -423,22 +468,11 @@ public class JobServiceImpl implements JobService {
         return jobActions.stream()
                 .anyMatch(jobAction -> {
                     logger.info("UserID: " + jobAction.getUser().getId());
-                    if(jobAction.getAction().equals(Action.START) || jobAction.getAction().equals(Action.RESUME)) {
+                    if(jobAction.getAction().equals(Action.START)) {
                         return jobAction.getUser().getId().equals(userId);
                     }
                     return false;
                 });
-    }
-
-    public boolean isJobPaused(List<JobAction> jobActions) {
-//        List<JobAction> filteredActions = new ArrayList<>();
-        jobActions.sort(Comparator.comparing(JobAction::getJobActionAt));
-        jobActions.forEach(jobAction -> logger.info("action at: " + jobAction.getJobActionAt()));
-
-        JobAction lastAction = jobActions.get(jobActions.size()-1);
-        // If the last action is RESUME, it can be PAUSED
-        if(lastAction.getAction().equals(Action.RESUME)) return false;
-        return true;
     }
 
     public int numberOfEmployeesOnJob(List<JobAction> jobActions) {

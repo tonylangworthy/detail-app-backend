@@ -5,6 +5,7 @@ import com.webbdealer.detailing.customer.CustomerService;
 import com.webbdealer.detailing.employee.EmployeeService;
 import com.webbdealer.detailing.employee.dao.User;
 import com.webbdealer.detailing.job.InvalidJobActionException;
+import com.webbdealer.detailing.job.JobActionService;
 import com.webbdealer.detailing.job.JobServiceImpl;
 import com.webbdealer.detailing.recondition.ReconditionService;
 import com.webbdealer.detailing.vehicle.VehicleLookupService;
@@ -31,6 +32,8 @@ public class JobServiceImplIntegrationTests {
     private CompanyService companyService;
     @Mock
     private JobRepository jobRepository;
+    @Mock
+    private JobActionService jobActionService
     @Mock
     private VehicleService vehicleService;
     @Mock
@@ -153,7 +156,7 @@ public class JobServiceImplIntegrationTests {
         job.setJobActions(jobActionList);
 
         assertThrows(InvalidJobActionException.class, () -> {
-            jobService.stopJob(job, user1, LocalDateTime.of(2021, 3, 31, 6, 30, 0));
+            jobService.markJobAsCompleted(job, user1, LocalDateTime.of(2021, 3, 31, 6, 30, 0));
         });
     }
 
@@ -166,7 +169,7 @@ public class JobServiceImplIntegrationTests {
         job.setJobActions(jobActionList);
 
         assertThrows(InvalidJobActionException.class, () -> {
-            jobService.stopJob(job, user1, LocalDateTime.of(2021, 3, 31, 6, 30, 0));
+            jobService.markJobAsCompleted(job, user1, LocalDateTime.of(2021, 3, 31, 6, 30, 0));
         });
     }
 
@@ -179,7 +182,7 @@ public class JobServiceImplIntegrationTests {
         job.setJobActions(jobActionList);
 
         assertThrows(InvalidJobActionException.class, () -> {
-            jobService.stopJob(job, user2, LocalDateTime.of(2021, 3, 31, 6, 30, 0));
+            jobService.markJobAsCompleted(job, user2, LocalDateTime.of(2021, 3, 31, 6, 30, 0));
         });
     }
 
@@ -192,7 +195,7 @@ public class JobServiceImplIntegrationTests {
         job.setJobActions(jobActionList);
         job.setJobStatus(JobStatus.ACTIVE);
 
-        Job updatedJob = jobService.stopJob(job, user1, LocalDateTime.of(2021, 3, 31, 6, 30, 0));
+        Job updatedJob = jobService.markJobAsCompleted(job, user1, LocalDateTime.of(2021, 3, 31, 6, 30, 0));
 
         assertEquals(JobStatus.COMPLETED, updatedJob.getJobStatus());
     }

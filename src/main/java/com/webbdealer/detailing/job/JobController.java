@@ -2,7 +2,6 @@ package com.webbdealer.detailing.job;
 
 import com.webbdealer.detailing.employee.EmployeeService;
 import com.webbdealer.detailing.employee.dao.User;
-import com.webbdealer.detailing.job.dao.Action;
 import com.webbdealer.detailing.job.dao.Job;
 import com.webbdealer.detailing.job.dao.JobStatus;
 import com.webbdealer.detailing.job.dto.JobActionRequest;
@@ -130,7 +129,7 @@ public class JobController {
                 break;
             case "stop":
                 output = "job stopped";
-                jobService.stopJob(job, user, actionAt);
+                jobService.markJobAsCompleted(job, user, actionAt);
                 break;
             case "pause":
                 output = "job paused";

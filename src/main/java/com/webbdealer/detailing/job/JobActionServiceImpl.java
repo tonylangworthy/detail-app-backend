@@ -59,6 +59,21 @@ public class JobActionServiceImpl implements JobActionService {
     }
 
     @Override
+    public JobAction createStartAction(Job job, User user, LocalDateTime actionAt) {
+        return new JobAction(actionAt, Action.START, job, user);
+    }
+
+    @Override
+    public JobAction createStopAction(Job job, User user, LocalDateTime actionAt) {
+        return new JobAction(actionAt, Action.STOP, job, user);
+    }
+
+    @Override
+    public JobAction saveJobAction(JobAction jobAction) {
+        return jobActionRepository.save(jobAction);
+    }
+
+    @Override
     public List<JobAction> fetchActionsByJobId(Long jobId) {
         return jobActionRepository.findByJobId(jobId);
     }
