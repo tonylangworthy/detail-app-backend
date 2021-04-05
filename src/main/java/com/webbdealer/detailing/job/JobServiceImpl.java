@@ -119,25 +119,24 @@ public class JobServiceImpl implements JobService {
         if(isJobPending(job)) {
             job.setJobStatus(JobStatus.ACTIVE);
 
+            List<JobAction> jobActions = job.getJobActions();
+
+            if(isJobCompleted(job)) {
+                logger.info("Job has already been completed");
+                throw new InvalidJobActionException(("This job has already been completed."));
+            }
+            else if(hasEmployeeStartedJob(jobActions, user.getId())) {
+                logger.info("This employee has already started this job.");
+                throw new InvalidJobActionException(("This employee has already started this job."));
+            }
+
             // Create a new action for this job
-            jobActionService.createStartAction(job, user, startAt);
+            JobAction startAction = jobActionService.createStartAction(job, user, startAt);
+
+            job.getJobActions().add(startAction);
         }
 
 
-
-        List<JobAction> jobActions = job.getJobActions();
-        logger.info(jobActions.toString());
-
-        if(isJobCompleted(job)) {
-            logger.info("Job has already been completed");
-            throw new InvalidJobActionException(("This job has already been completed."));
-        }
-        else if(hasEmployeeStartedJob(jobActions, user.getId())) {
-            logger.info("This employee has already started this job.");
-            throw new InvalidJobActionException(("This employee has already started this job."));
-        }
-        job.getJobActions().add(new JobAction(startAt, Action.START, job, user));
-        job.setJobStatus(JobStatus.ACTIVE);
 
         return job;
     }
