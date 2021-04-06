@@ -131,7 +131,7 @@ public class JobServiceImpl implements JobService {
             }
 
             // Create a new action for this job
-            JobAction startAction = jobActionService.createStartAction(job, user, startAt);
+            JobAction startAction = jobActionService.logStartAction(job, user, startAt);
 
             job.getJobActions().add(startAction);
         }

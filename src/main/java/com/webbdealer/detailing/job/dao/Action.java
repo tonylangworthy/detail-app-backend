@@ -2,5 +2,9 @@ package com.webbdealer.detailing.job.dao;
 
 public enum Action {
     START,
-    STOP
+    STOP,
+    PAUSE,
+    RESUME,
+    FINISH,
+    CANCEL
 }
