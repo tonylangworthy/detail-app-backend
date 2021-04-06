@@ -11,7 +11,6 @@ import com.webbdealer.detailing.vehicle.VehicleService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 
 import java.time.LocalDate;
@@ -108,20 +107,6 @@ public class JobServiceImplIntegrationTests {
     public void startJob_UserAlreadyAssigned_InvalidJobActionException_Test() {
         List<JobAction> jobActionList = new ArrayList<>();
         jobActionList.add(new JobAction(LocalDateTime.of(yesterday, yesterdayStartTime), Action.START, job1, user1));
-        jobActionList.add(new JobAction(LocalDateTime.of(today, todayStartTime), Action.START, job1, user2));
-        job1.setJobActions(jobActionList);
-
-        assertThrows(InvalidJobActionException.class, () -> {
-            jobService.startJob(job1, user1, LocalDateTime.of(2021, 03, 30, 8, 30, 0));
-        });
-    }
-
-    @Test
-    public void startJob_AlreadyStarted_InvalidJobActionException_Test() {
-
-        List<JobAction> jobActionList = new ArrayList<>();
-        jobActionList.add(new JobAction(LocalDateTime.of(yesterday, yesterdayStartTime), Action.START, job1, user2));
-        jobActionList.add(new JobAction(LocalDateTime.of(yesterday, yesterdayStopTime), Action.STOP, job1, user2));
         job1.setJobActions(jobActionList);
 
         assertThrows(InvalidJobActionException.class, () -> {
@@ -155,26 +140,27 @@ public class JobServiceImplIntegrationTests {
     }
 
     @Test
-    public void stopJob_NotStarted_InvalidJobActionException_Test() {
+    public void markJobAsFinished_NotStarted_InvalidJobStatusException_Test() {
         List<JobAction> jobActionList = new ArrayList<>();
         jobActionList.add(new JobAction(LocalDateTime.of(yesterday, yesterdayStartTime), Action.START, job1, user2));
         job1.setJobActions(jobActionList);
 
-        assertThrows(InvalidJobActionException.class, () -> {
-            jobService.markJobAsCompleted(job1, user1, LocalDateTime.of(2021, 3, 31, 6, 30, 0));
+        assertThrows(InvalidJobStatusException.class, () -> {
+            jobService.markJobAsFinished(job1, user1, LocalDateTime.of(2021, 3, 31, 6, 30, 0));
         });
     }
 
     @Test
-    public void stopJob_IncorrectUser_InvalidJobActionException_Test() {
+    public void markJobAsFinished_TwoEmployees_EqualsJobStatusActive() {
         List<JobAction> jobActionList = new ArrayList<>();
         jobActionList.add(new JobAction(LocalDateTime.of(yesterday, yesterdayStartTime), Action.START, job1, user2));
-        jobActionList.add(new JobAction(LocalDateTime.of(yesterday, yesterdayPauseTime), Action.STOP, job1, user2));
+        jobActionList.add(new JobAction(LocalDateTime.of(today, todayStartTime), Action.START, job1, user1));
         job1.setJobActions(jobActionList);
+        job1.setJobStatus(JobStatus.ACTIVE);
 
-        assertThrows(InvalidJobActionException.class, () -> {
-            jobService.markJobAsCompleted(job1, user1, LocalDateTime.of(2021, 3, 31, 6, 30, 0));
-        });
+        Job job = jobService.markJobAsFinished(job1, user1, LocalDateTime.of(2021, 4, 5, 5, 1, 0));
+
+        assertEquals(JobStatus.ACTIVE, job.getJobStatus());
     }
 
     @Test
@@ -185,7 +171,7 @@ public class JobServiceImplIntegrationTests {
         job1.setJobActions(jobActionList);
 
         assertThrows(InvalidJobActionException.class, () -> {
-            jobService.markJobAsCompleted(job1, user2, LocalDateTime.of(2021, 3, 31, 6, 30, 0));
+            jobService.markJobAsFinished(job1, user2, LocalDateTime.of(2021, 3, 31, 6, 30, 0));
         });
     }
 
@@ -197,7 +183,7 @@ public class JobServiceImplIntegrationTests {
         job1.setJobActions(jobActionList);
         job1.setJobStatus(JobStatus.ACTIVE);
 
-        Job updatedJob = jobService.markJobAsCompleted(job1, user1, LocalDateTime.of(2021, 3, 31, 6, 30, 0));
+        Job updatedJob = jobService.markJobAsFinished(job1, user1, LocalDateTime.of(2021, 3, 31, 6, 30, 0));
 
         assertEquals(JobStatus.COMPLETED, updatedJob.getJobStatus());
     }

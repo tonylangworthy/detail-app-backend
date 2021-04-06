@@ -25,7 +25,7 @@ public interface JobService {
 
     Job startJob(Job job, User user, LocalDateTime startAt);
 
-    Job markJobAsCompleted(Job job, User user, LocalDateTime stopAt);
+    Job markJobAsFinished(Job job, User user, LocalDateTime stopAt);
 
     Job pauseJob(Job job, User user, LocalDateTime pauseAt);
 

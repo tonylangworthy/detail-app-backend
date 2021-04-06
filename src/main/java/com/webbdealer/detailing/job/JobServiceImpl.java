@@ -107,7 +107,7 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public Job startJob(Job job, User user, LocalDateTime startAt) throws InvalidJobStatusException {
+    public Job startJob(Job job, User user, LocalDateTime startAt) throws InvalidJobStatusException, InvalidJobActionException {
         // 1. Is this user already working this job?
         // if yes, throw exception
         // 2. Is this user working another active job?
@@ -123,7 +123,7 @@ public class JobServiceImpl implements JobService {
 
             if(isJobCompleted(job)) {
                 logger.info("Job has already been completed");
-                throw new InvalidJobActionException(("This job has already been completed."));
+                throw new InvalidJobStatusException(("This job has already been completed."));
             }
             else if(hasEmployeeStartedJob(jobActions, user.getId())) {
                 logger.info("This employee has already started this job.");
@@ -135,16 +135,12 @@ public class JobServiceImpl implements JobService {
 
             job.getJobActions().add(startAction);
         }
-
-
-
         return job;
     }
 
     @Override
-    public Job markJobAsCompleted(Job job, User user, LocalDateTime stopAt) throws InvalidJobStatusException {
-        // 1. Has job been started?
-        // If no, throw exception (job hasn't been started yet!
+    public Job markJobAsFinished(Job job, User user, LocalDateTime stopAt) throws InvalidJobStatusException {
+        // Employee marks job as complete. This puts the job in the AWAITING_APPROVAL status
         List<JobAction> jobActions = job.getJobActions();
 
 //        boolean hasEmployeeStartedJob = hasEmployeeStartedJob(jobActions, user.getId());
@@ -153,27 +149,21 @@ public class JobServiceImpl implements JobService {
             logger.info("Job has not been started yet.");
             throw new InvalidJobStatusException("Job has not been started yet.");
         }
-        else if(isJobAwaitingApproval(job)) {
-            logger.info("Job is still awaiting approval.");
-            throw new InvalidJobStatusException("Job is still awaiting approval.");
-        }
         else if(isJobCompleted(job)) {
             logger.info("Job has already been completed");
             throw new InvalidJobStatusException(("This job has already been completed."));
         }
         else if(isJobPaused(job)) {
-
             logger.info("Job is currently paused.");
             throw new InvalidJobStatusException(("Job is currently paused."));
         }
         else if(isJobCancelled(job)) {
-
             logger.info("Job has been cancelled.");
             throw new InvalidJobStatusException(("Job has been cancelled."));
         }
-        else if(numberOfEmployeesOnJob(jobActions) == 1) {
-            job.setJobStatus(JobStatus.COMPLETED);
-        }
+//        else if(numberOfEmployeesOnJob(jobActions) == 1) {
+            job.setJobStatus(JobStatus.AWAITING_APPROVAL);
+//        }
         job.getJobActions().add(new JobAction(stopAt, Action.STOP, job, user));
         // If yes,
         // 2. Are there any other users on this job?

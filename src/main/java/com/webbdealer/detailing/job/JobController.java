@@ -129,7 +129,7 @@ public class JobController {
                 break;
             case "stop":
                 output = "job stopped";
-                jobService.markJobAsCompleted(job, user, actionAt);
+                jobService.markJobAsFinished(job, user, actionAt);
                 break;
             case "pause":
                 output = "job paused";
