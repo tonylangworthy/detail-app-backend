@@ -139,6 +139,11 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
+    public Job completeJob(Job job, User user, LocalDateTime completedAt) {
+        return null;
+    }
+
+    @Override
     public Job markJobAsFinished(Job job, User user, LocalDateTime stopAt) throws InvalidJobStatusException {
         // Employee marks job as complete. This puts the job in the AWAITING_APPROVAL status
         List<JobAction> jobActions = job.getJobActions();
