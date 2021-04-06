@@ -75,6 +75,13 @@ public class Job extends BaseEntity implements Serializable {
             inverseJoinColumns = @JoinColumn(name = "job_id", referencedColumnName = "id"))
     private List<Recondition> reconditioningServices = new ArrayList<>();
 
+    @ManyToMany
+    @JoinTable(
+            name = "users_jobs",
+            joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
+            inverseJoinColumns = @JoinColumn(name = "job_id", referencedColumnName = "id"))
+    private List<User> assignedEmployees = new ArrayList<>();
+
     public JobStatus getJobStatus() {
         return jobStatus;
     }
@@ -139,18 +146,34 @@ public class Job extends BaseEntity implements Serializable {
         this.reconditioningServices = reconditioningServices;
     }
 
+    public List<User> getAssignedEmployees() {
+        return assignedEmployees;
+    }
+
+    public void setAssignedEmployees(List<User> assignedEmployees) {
+        this.assignedEmployees = assignedEmployees;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (!(o instanceof Job)) return false;
         if (!super.equals(o)) return false;
         Job job = (Job) o;
-        return jobStatus == job.jobStatus && Objects.equals(managerNotes, job.managerNotes) && Objects.equals(employeeNotes, job.employeeNotes) && Objects.equals(company, job.company) && Objects.equals(customer, job.customer) && Objects.equals(vehicle, job.vehicle) && Objects.equals(jobActions, job.jobActions) && Objects.equals(reconditioningServices, job.reconditioningServices);
+        return jobStatus == job.jobStatus &&
+                Objects.equals(managerNotes, job.managerNotes) &&
+                Objects.equals(employeeNotes, job.employeeNotes) &&
+                Objects.equals(company, job.company) &&
+                Objects.equals(customer, job.customer) &&
+                Objects.equals(vehicle, job.vehicle) &&
+                Objects.equals(jobActions, job.jobActions) &&
+                Objects.equals(reconditioningServices, job.reconditioningServices) &&
+                Objects.equals(assignedEmployees, job.assignedEmployees);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), jobStatus, managerNotes, employeeNotes, company, customer, vehicle, jobActions, reconditioningServices);
+        return Objects.hash(super.hashCode(), jobStatus, managerNotes, employeeNotes, company, customer, vehicle, jobActions, reconditioningServices, assignedEmployees);
     }
 
     @Override

@@ -89,7 +89,7 @@ public class JobServiceImplIntegrationTests {
         // This job is already active
         job2.setJobStatus(JobStatus.ACTIVE);
 
-        jobActionService = new JobActionServiceImpl(publisher, jobActionRepository, employeeService, jobService);
+        jobActionService = new JobActionServiceImpl(publisher, jobActionRepository, employeeService);
 
         jobService = new JobServiceImpl(
                 companyService,

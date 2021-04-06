@@ -20,17 +20,13 @@ public class JobActionServiceImpl implements JobActionService {
 
     private EmployeeService employeeService;
 
-    private JobService jobService;
-
     @Autowired
     public JobActionServiceImpl(ApplicationEventPublisher publisher,
                                 JobActionRepository jobActionRepository,
-                                EmployeeService employeeService,
-                                JobService jobService) {
+                                EmployeeService employeeService) {
         this.publisher = publisher;
         this.jobActionRepository = jobActionRepository;
         this.employeeService = employeeService;
-        this.jobService = jobService;
     }
 
     @Override
@@ -87,18 +83,12 @@ public class JobActionServiceImpl implements JobActionService {
         // If yes, has job been started by this user?
         // If no, start job
 
-        User user = employeeService.fetchByIdReference(userId);
-        Job job = jobService.fetchByIdReference(jobId);
-
-        JobAction jobAction = new JobAction(LocalDateTime.now(), Action.START, job, user);
 
 //        if(job.getJobEndedAt() != null) {
 //            throw new InvalidJobActionException("Job already ended!!");
 //        }
 //        job.setJobStartedAt(startAt.atZone(zoneId));
 //        job.getEmployees().add(user);
-        JobAction savedJobAction = jobActionRepository.save(jobAction);
-        publisher.publishEvent(new JobActionEvent(this, savedJobAction));
     }
 
 //    @Override
