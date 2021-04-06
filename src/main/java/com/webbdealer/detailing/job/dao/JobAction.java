@@ -32,7 +32,6 @@ public class JobAction {
     @JsonIgnore
     private User user;
 
-
     public JobAction() {
     }
 

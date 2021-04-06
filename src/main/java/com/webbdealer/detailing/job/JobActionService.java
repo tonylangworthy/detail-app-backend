@@ -13,9 +13,17 @@ public interface JobActionService {
 
     JobStatus jobStatus(Job job);
 
-    JobAction createStartAction(Job job, User user, LocalDateTime actionAt);
+    JobAction logStartAction(Job job, User user, LocalDateTime actionAt);
 
-    JobAction createStopAction(Job job, User user, LocalDateTime actionAt);
+    JobAction logStopAction(Job job, User user, LocalDateTime actionAt);
+
+    JobAction logPauseAction(Job job, User user, LocalDateTime actionAt);
+
+    JobAction logResumeAction(Job job, User user, LocalDateTime actionAt);
+
+    JobAction logFinishAction(Job job, User user, LocalDateTime actionAt);
+
+    JobAction logCancelAction(Job job, User user, LocalDateTime actionAt);
 
     JobAction saveJobAction(JobAction jobAction);
 

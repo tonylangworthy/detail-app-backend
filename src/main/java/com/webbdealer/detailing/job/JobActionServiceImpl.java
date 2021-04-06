@@ -59,13 +59,33 @@ public class JobActionServiceImpl implements JobActionService {
     }
 
     @Override
-    public JobAction createStartAction(Job job, User user, LocalDateTime actionAt) {
+    public JobAction logStartAction(Job job, User user, LocalDateTime actionAt) {
         return new JobAction(actionAt, Action.START, job, user);
     }
 
     @Override
-    public JobAction createStopAction(Job job, User user, LocalDateTime actionAt) {
+    public JobAction logStopAction(Job job, User user, LocalDateTime actionAt) {
         return new JobAction(actionAt, Action.STOP, job, user);
+    }
+
+    @Override
+    public JobAction logPauseAction(Job job, User user, LocalDateTime actionAt) {
+        return null;
+    }
+
+    @Override
+    public JobAction logResumeAction(Job job, User user, LocalDateTime actionAt) {
+        return null;
+    }
+
+    @Override
+    public JobAction logFinishAction(Job job, User user, LocalDateTime actionAt) {
+        return null;
+    }
+
+    @Override
+    public JobAction logCancelAction(Job job, User user, LocalDateTime actionAt) {
+        return null;
     }
 
     @Override
