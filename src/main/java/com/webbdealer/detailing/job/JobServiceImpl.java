@@ -139,7 +139,17 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public Job completeJob(Job job, User user, LocalDateTime completedAt) {
+    public Job approveJob(Job job, User user, LocalDateTime completedAt) {
+
+        // Job must be AWAITING_APPROVAL
+        if(isJobAwaitingApproval(job)) {
+
+        }
+        return null;
+    }
+
+    @Override
+    public Job denyJob(Job job, User user, LocalDateTime deniedAt) {
         return null;
     }
 
@@ -166,9 +176,9 @@ public class JobServiceImpl implements JobService {
             logger.info("Job has been cancelled.");
             throw new InvalidJobStatusException(("Job has been cancelled."));
         }
-//        else if(numberOfEmployeesOnJob(jobActions) == 1) {
+        else if(numberOfEmployeesOnJob(jobActions) == 1) {
             job.setJobStatus(JobStatus.AWAITING_APPROVAL);
-//        }
+        }
         job.getJobActions().add(new JobAction(stopAt, Action.STOP, job, user));
         // If yes,
         // 2. Are there any other users on this job?

@@ -151,6 +151,18 @@ public class JobServiceImplIntegrationTests {
     }
 
     @Test
+    public void stopJob_IncorrectJobStatus_InvalidJobActionException_Test() {
+        List<JobAction> jobActionList = new ArrayList<>();
+        jobActionList.add(new JobAction(LocalDateTime.of(yesterday, yesterdayStartTime), Action.START, job1, user2));
+        jobActionList.add(new JobAction(LocalDateTime.of(yesterday, yesterdayPauseTime), Action.STOP, job1, user2));
+        job1.setJobActions(jobActionList);
+
+        assertThrows(InvalidJobStatusException.class, () -> {
+            jobService.markJobAsFinished(job1, user2, LocalDateTime.of(2021, 3, 31, 6, 30, 0));
+        });
+    }
+
+    @Test
     public void markJobAsFinished_TwoEmployees_EqualsJobStatusActive() {
         List<JobAction> jobActionList = new ArrayList<>();
         jobActionList.add(new JobAction(LocalDateTime.of(yesterday, yesterdayStartTime), Action.START, job1, user2));
@@ -164,19 +176,7 @@ public class JobServiceImplIntegrationTests {
     }
 
     @Test
-    public void stopJob_IncorrectJobStatus_InvalidJobActionException_Test() {
-        List<JobAction> jobActionList = new ArrayList<>();
-        jobActionList.add(new JobAction(LocalDateTime.of(yesterday, yesterdayStartTime), Action.START, job1, user2));
-        jobActionList.add(new JobAction(LocalDateTime.of(yesterday, yesterdayPauseTime), Action.STOP, job1, user2));
-        job1.setJobActions(jobActionList);
-
-        assertThrows(InvalidJobActionException.class, () -> {
-            jobService.markJobAsFinished(job1, user2, LocalDateTime.of(2021, 3, 31, 6, 30, 0));
-        });
-    }
-
-    @Test
-    public void stopJob_Test() {
+    public void markJobAsFinished_Test() {
         List<JobAction> jobActionList = new ArrayList<>();
         jobActionList.add(new JobAction(LocalDateTime.of(yesterday, yesterdayStartTime), Action.START, job1, user1));
         jobActionList.add(new JobAction(LocalDateTime.of(yesterday, yesterdayPauseTime), Action.STOP, job1, user1));
@@ -185,7 +185,7 @@ public class JobServiceImplIntegrationTests {
 
         Job updatedJob = jobService.markJobAsFinished(job1, user1, LocalDateTime.of(2021, 3, 31, 6, 30, 0));
 
-        assertEquals(JobStatus.COMPLETED, updatedJob.getJobStatus());
+        assertEquals(JobStatus.AWAITING_APPROVAL, updatedJob.getJobStatus());
     }
 
     @Test
@@ -196,7 +196,7 @@ public class JobServiceImplIntegrationTests {
         job1.setJobActions(jobActionList);
         job1.setJobStatus(JobStatus.PAUSED);
 
-        assertThrows(InvalidJobActionException.class, () ->
+        assertThrows(InvalidJobStatusException.class, () ->
                 jobService.pauseJob(job1, user1, LocalDateTime.of(2021, 3, 31, 6, 30, 0)));
     }
 

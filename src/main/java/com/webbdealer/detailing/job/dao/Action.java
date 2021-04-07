@@ -6,5 +6,7 @@ public enum Action {
     PAUSE,
     RESUME,
     FINISH,
-    CANCEL
+    CANCEL,
+    APPROVE,
+    DENY
 }
