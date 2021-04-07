@@ -139,18 +139,27 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
-    public Job approveJob(Job job, User user, LocalDateTime completedAt) {
+    public Job approveJob(Job job, User user, LocalDateTime approvedAt) {
+        // ONLY A MANAGER OR QC PERSON CAN APPROVE
 
         // Job must be AWAITING_APPROVAL
         if(isJobAwaitingApproval(job)) {
-
+            job.setJobStatus(JobStatus.COMPLETED);
+            jobActionService.logApprovalAction(job, user, approvedAt);
         }
-        return null;
+        return job;
     }
 
     @Override
     public Job denyJob(Job job, User user, LocalDateTime deniedAt) {
-        return null;
+        // ONLY A MANAGER OR QC PERSON CAN DENY
+
+        if(isJobAwaitingApproval(job)) {
+            // leave the job status as AWAITING_APPROVAL
+            jobActionService.logDenialAction(job, user, deniedAt);
+        }
+
+        return job;
     }
 
     @Override
@@ -243,6 +252,7 @@ public class JobServiceImpl implements JobService {
         // ONLY ADMIN OR MANAGER CAN CANCEL JOB
         // Job can be in any state to be cancelled
         job.setJobStatus(JobStatus.CANCELLED);
+        jobActionService.logCancelAction(job, user, cancelAt);
 
         // any actions on the job must be stopped
 
@@ -299,7 +309,7 @@ public class JobServiceImpl implements JobService {
         Long vehicleId = createJobRequest.getVehicle().getId();
         Vehicle vehicle;
         if(vehicleId == null) {
-            vehicle = vehicleService.fetchOrCreateVehicleFromRequest(companyId, createJobRequest.getVehicle());
+            vehicle = vehicleService.resumeJobfetchOrCreateVehicleFromRequest(companyId, createJobRequest.getVehicle());
         }
         else {
             vehicle = vehicleService.fetchByIdReference(vehicleId);
@@ -485,5 +495,14 @@ public class JobServiceImpl implements JobService {
         jobActions.forEach(jobAction -> employeeIds.add(jobAction.getUser().getId()));
         logger.info("Number of employees on this job: " + employeeIds.size());
         return employeeIds.size();
+    }
+
+    public Duration calculateTotalJobTime(Job job) {
+        List<User> assignedEmployees = job.getAssignedEmployees();
+        // Get the actions by assigned employee
+
+
+
+        return Duration.ZERO;
     }
 }

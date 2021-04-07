@@ -213,13 +213,55 @@ public class JobServiceImplIntegrationTests {
     }
 
     @Test
+    public void approveJob_Test() {
+        List<JobAction> jobActionList = new ArrayList<>();
+        jobActionList.add(new JobAction(LocalDateTime.of(yesterday, yesterdayStartTime), Action.START, job1, user1));
+        jobActionList.add(new JobAction(LocalDateTime.of(yesterday, yesterdayStopTime), Action.START, job1, user1));
+        job1.setJobActions(jobActionList);
+        job1.setJobStatus(JobStatus.AWAITING_APPROVAL);
+
+        Job updatedJob = jobService.approveJob(job1, user1, LocalDateTime.of(2021, 3, 31, 6, 30, 0));
+
+        assertEquals(JobStatus.COMPLETED, updatedJob.getJobStatus());
+    }
+
+    @Test
+    public void denyJob_Test() {
+        List<JobAction> jobActionList = new ArrayList<>();
+        jobActionList.add(new JobAction(LocalDateTime.of(yesterday, yesterdayStartTime), Action.START, job1, user1));
+        jobActionList.add(new JobAction(LocalDateTime.of(yesterday, yesterdayStopTime), Action.START, job1, user1));
+        job1.setJobActions(jobActionList);
+        job1.setJobStatus(JobStatus.AWAITING_APPROVAL);
+
+        Job updatedJob = jobService.denyJob(job1, user1, LocalDateTime.of(2021, 3, 31, 6, 30, 0));
+
+        assertEquals(JobStatus.AWAITING_APPROVAL, updatedJob.getJobStatus());
+    }
+
+    @Test
     public void resumeJob_Test() {
-        fail();
+        List<JobAction> jobActionList = new ArrayList<>();
+        jobActionList.add(new JobAction(LocalDateTime.of(yesterday, yesterdayStartTime), Action.START, job1, user1));
+        jobActionList.add(new JobAction(LocalDateTime.of(yesterday, yesterdayStopTime), Action.PAUSE, job1, user1));
+        job1.setJobActions(jobActionList);
+        job1.setJobStatus(JobStatus.PAUSED);
+
+        Job updatedJob = jobService.resumeJob(job1, user1, LocalDateTime.of(2021, 3, 31, 6, 30, 0));
+
+        assertEquals(JobStatus.ACTIVE, updatedJob.getJobStatus());
     }
 
     @Test
     public void cancelJob_Test() {
-        fail();
+        List<JobAction> jobActionList = new ArrayList<>();
+        jobActionList.add(new JobAction(LocalDateTime.of(yesterday, yesterdayStartTime), Action.START, job1, user1));
+        jobActionList.add(new JobAction(LocalDateTime.of(yesterday, yesterdayStopTime), Action.PAUSE, job1, user1));
+        job1.setJobActions(jobActionList);
+        job1.setJobStatus(JobStatus.PAUSED);
+
+        Job updatedJob = jobService.cancelJob(job1, user1, LocalDateTime.of(2021, 3, 31, 6, 30, 0));
+
+        assertEquals(JobStatus.CANCELLED, updatedJob.getJobStatus());
     }
 
 
