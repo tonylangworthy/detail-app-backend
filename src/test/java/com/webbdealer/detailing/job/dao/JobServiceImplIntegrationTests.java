@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.springframework.context.ApplicationEventPublisher;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -52,13 +53,17 @@ public class JobServiceImplIntegrationTests {
     private LocalDate yesterday;
     private LocalDate today;
     private LocalTime yesterdayStartTime;
-    private LocalTime yesterdayStopTime;
+    private LocalTime yesterdayFinishTime;
     private LocalTime yesterdayPauseTime;
     private LocalTime yesterdayResumeTime;
     private LocalTime todayStartTime;
-    private LocalTime todayStopTime;
+    private LocalTime todayFinishTime;
     private LocalTime todayPauseTime;
     private LocalTime todayResumeTime;
+    private LocalTime yesterdayDenyTime;
+    private LocalTime yesterdayApprovalTime;
+    private LocalTime todayDenyTime;
+    private LocalTime todayApprovalTime;
 
     @BeforeEach
     public void initJobs() {
@@ -66,13 +71,17 @@ public class JobServiceImplIntegrationTests {
         yesterday = LocalDate.of(2021, 03, 28);
         today = LocalDate.of(2021, 03, 29);
         yesterdayStartTime = LocalTime.of(8, 33, 0);
-        yesterdayStopTime = LocalTime.of(5, 2, 0);
+        yesterdayFinishTime = LocalTime.of(5, 2, 0);
+        yesterdayDenyTime = LocalTime.of(5, 30, 0);
+        yesterdayApprovalTime = LocalTime.of(5, 25, 0);
         yesterdayPauseTime = LocalTime.of(11, 32, 0);
         yesterdayResumeTime = LocalTime.of(12, 3, 0);
         todayStartTime = LocalTime.of(8, 2, 0);
-        todayStopTime = LocalTime.of(11, 15, 0);
+        todayFinishTime = LocalTime.of(2, 15, 0);
         todayPauseTime = LocalTime.of(11, 25, 0);
         todayResumeTime = LocalTime.of(11, 58, 0);
+        todayDenyTime = LocalTime.of(5, 30, 0);
+        todayApprovalTime = LocalTime.of(5, 25, 0);
 
         job1 = new Job();
         job2 = new Job();
@@ -132,7 +141,7 @@ public class JobServiceImplIntegrationTests {
 
         List<JobAction> jobActionList = new ArrayList<>();
         jobActionList.add(new JobAction(LocalDateTime.of(yesterday, yesterdayStartTime), Action.START, job1, user1));
-        jobActionList.add(new JobAction(LocalDateTime.of(yesterday, yesterdayStopTime), Action.STOP, job1, user1));
+        jobActionList.add(new JobAction(LocalDateTime.of(yesterday, yesterdayFinishTime), Action.PAUSE, job1, user1));
         jobActionList.add(new JobAction(LocalDateTime.of(today, todayStartTime), Action.START, job1, user2));
         job1.setJobActions(jobActionList);
 
@@ -154,7 +163,7 @@ public class JobServiceImplIntegrationTests {
     public void stopJob_IncorrectJobStatus_InvalidJobActionException_Test() {
         List<JobAction> jobActionList = new ArrayList<>();
         jobActionList.add(new JobAction(LocalDateTime.of(yesterday, yesterdayStartTime), Action.START, job1, user2));
-        jobActionList.add(new JobAction(LocalDateTime.of(yesterday, yesterdayPauseTime), Action.STOP, job1, user2));
+        jobActionList.add(new JobAction(LocalDateTime.of(yesterday, yesterdayPauseTime), Action.PAUSE, job1, user2));
         job1.setJobActions(jobActionList);
 
         assertThrows(InvalidJobStatusException.class, () -> {
@@ -179,7 +188,7 @@ public class JobServiceImplIntegrationTests {
     public void markJobAsFinished_Test() {
         List<JobAction> jobActionList = new ArrayList<>();
         jobActionList.add(new JobAction(LocalDateTime.of(yesterday, yesterdayStartTime), Action.START, job1, user1));
-        jobActionList.add(new JobAction(LocalDateTime.of(yesterday, yesterdayPauseTime), Action.STOP, job1, user1));
+        jobActionList.add(new JobAction(LocalDateTime.of(yesterday, yesterdayPauseTime), Action.FINISH, job1, user1));
         job1.setJobActions(jobActionList);
         job1.setJobStatus(JobStatus.ACTIVE);
 
@@ -216,7 +225,7 @@ public class JobServiceImplIntegrationTests {
     public void approveJob_Test() {
         List<JobAction> jobActionList = new ArrayList<>();
         jobActionList.add(new JobAction(LocalDateTime.of(yesterday, yesterdayStartTime), Action.START, job1, user1));
-        jobActionList.add(new JobAction(LocalDateTime.of(yesterday, yesterdayStopTime), Action.START, job1, user1));
+        jobActionList.add(new JobAction(LocalDateTime.of(yesterday, yesterdayFinishTime), Action.START, job1, user1));
         job1.setJobActions(jobActionList);
         job1.setJobStatus(JobStatus.AWAITING_APPROVAL);
 
@@ -229,7 +238,7 @@ public class JobServiceImplIntegrationTests {
     public void denyJob_Test() {
         List<JobAction> jobActionList = new ArrayList<>();
         jobActionList.add(new JobAction(LocalDateTime.of(yesterday, yesterdayStartTime), Action.START, job1, user1));
-        jobActionList.add(new JobAction(LocalDateTime.of(yesterday, yesterdayStopTime), Action.START, job1, user1));
+        jobActionList.add(new JobAction(LocalDateTime.of(yesterday, yesterdayFinishTime), Action.START, job1, user1));
         job1.setJobActions(jobActionList);
         job1.setJobStatus(JobStatus.AWAITING_APPROVAL);
 
@@ -242,7 +251,7 @@ public class JobServiceImplIntegrationTests {
     public void resumeJob_Test() {
         List<JobAction> jobActionList = new ArrayList<>();
         jobActionList.add(new JobAction(LocalDateTime.of(yesterday, yesterdayStartTime), Action.START, job1, user1));
-        jobActionList.add(new JobAction(LocalDateTime.of(yesterday, yesterdayStopTime), Action.PAUSE, job1, user1));
+        jobActionList.add(new JobAction(LocalDateTime.of(yesterday, yesterdayFinishTime), Action.PAUSE, job1, user1));
         job1.setJobActions(jobActionList);
         job1.setJobStatus(JobStatus.PAUSED);
 
@@ -255,7 +264,7 @@ public class JobServiceImplIntegrationTests {
     public void cancelJob_Test() {
         List<JobAction> jobActionList = new ArrayList<>();
         jobActionList.add(new JobAction(LocalDateTime.of(yesterday, yesterdayStartTime), Action.START, job1, user1));
-        jobActionList.add(new JobAction(LocalDateTime.of(yesterday, yesterdayStopTime), Action.PAUSE, job1, user1));
+        jobActionList.add(new JobAction(LocalDateTime.of(yesterday, yesterdayFinishTime), Action.PAUSE, job1, user1));
         job1.setJobActions(jobActionList);
         job1.setJobStatus(JobStatus.PAUSED);
 
@@ -264,5 +273,116 @@ public class JobServiceImplIntegrationTests {
         assertEquals(JobStatus.CANCELLED, updatedJob.getJobStatus());
     }
 
+    @Test
+    public void filterJobActionByEmployee_Equals4_Test() {
 
+        JobAction yesterdayStartAction = new JobAction(LocalDateTime.of(yesterday, yesterdayStartTime), Action.START, job1, user1);
+        JobAction yesterdayPauseAction = new JobAction(LocalDateTime.of(yesterday, yesterdayPauseTime), Action.PAUSE, job1, user1);
+        JobAction todayResumeAction = new JobAction(LocalDateTime.of(today, todayResumeTime), Action.RESUME, job1, user1);
+        JobAction todayFinishAction = new JobAction(LocalDateTime.of(today, todayFinishTime), Action.FINISH, job1, user1);
+        JobAction todayDenyAction = new JobAction(LocalDateTime.of(today, todayDenyTime), Action.DENY, job1, user3);
+        JobAction todayApproveAction = new JobAction(LocalDateTime.of(today, todayApprovalTime), Action.APPROVE, job1, user3);
+
+        List<JobAction> jobActionList = new ArrayList<>();
+        jobActionList.add(yesterdayStartAction);
+        jobActionList.add(yesterdayPauseAction);
+        jobActionList.add(todayResumeAction);
+        jobActionList.add(todayFinishAction);
+        jobActionList.add(todayDenyAction);
+        jobActionList.add(todayApproveAction);
+        job1.getAssignedEmployees().add(user1);
+
+        // set the job actions for this user
+        user1.getJobActions().add(yesterdayStartAction);
+        user1.getJobActions().add(yesterdayPauseAction);
+        user1.getJobActions().add(todayResumeAction);
+        user1.getJobActions().add(todayFinishAction);
+        user3.getJobActions().add(todayDenyAction);
+        user3.getJobActions().add(todayApproveAction);
+
+        job1.setJobActions(jobActionList);
+        job1.setJobStatus(JobStatus.COMPLETED);
+
+        List<JobAction> filteredJobActions = jobService.filterJobActionByEmployee(user1);
+        assertEquals(4, filteredJobActions.size());
+    }
+
+    @Test
+    public void getDurationOfTimeValues_Test() {
+        Duration duration = jobService.getDurationOfTimeValues(yesterdayStartTime, yesterdayPauseTime);
+        System.out.println("duration: " + duration.toString());
+
+        assertEquals(2, duration.toHoursPart());
+        assertEquals(59, duration.toMinutesPart());
+    }
+
+    @Test
+    public void filterStartStopTimes_Test() {
+        JobAction yesterdayStartAction = new JobAction(LocalDateTime.of(yesterday, yesterdayStartTime), Action.START, job1, user1);
+        JobAction yesterdayPauseAction = new JobAction(LocalDateTime.of(yesterday, yesterdayPauseTime), Action.PAUSE, job1, user1);
+        JobAction todayResumeAction = new JobAction(LocalDateTime.of(today, todayResumeTime), Action.RESUME, job1, user1);
+        JobAction todayFinishAction = new JobAction(LocalDateTime.of(today, todayFinishTime), Action.FINISH, job1, user1);
+        JobAction todayDenyAction = new JobAction(LocalDateTime.of(today, todayDenyTime), Action.DENY, job1, user3);
+        JobAction todayApproveAction = new JobAction(LocalDateTime.of(today, todayApprovalTime), Action.APPROVE, job1, user3);
+
+        List<JobAction> jobActionList = new ArrayList<>();
+        jobActionList.add(yesterdayStartAction);
+        jobActionList.add(yesterdayPauseAction);
+        jobActionList.add(todayResumeAction);
+        jobActionList.add(todayFinishAction);
+        jobActionList.add(todayDenyAction);
+        jobActionList.add(todayApproveAction);
+        job1.getAssignedEmployees().add(user1);
+
+        // set the job actions for this user
+        user1.getJobActions().add(yesterdayStartAction);
+        user1.getJobActions().add(yesterdayPauseAction);
+        user1.getJobActions().add(todayResumeAction);
+        user1.getJobActions().add(todayFinishAction);
+        user3.getJobActions().add(todayDenyAction);
+        user3.getJobActions().add(todayApproveAction);
+
+
+        job1.setJobActions(jobActionList);
+        job1.setJobStatus(JobStatus.COMPLETED);
+
+        List<JobAction> jobActions = jobService.filterStartStopTimes(jobActionList);
+
+    }
+
+    @Test
+    public void calculateTotalJobTime_OneEmployee_Test() {
+        JobAction yesterdayStartAction = new JobAction(LocalDateTime.of(yesterday, yesterdayStartTime), Action.START, job1, user1);
+        JobAction yesterdayPauseAction = new JobAction(LocalDateTime.of(yesterday, yesterdayPauseTime), Action.PAUSE, job1, user1);
+        JobAction todayResumeAction = new JobAction(LocalDateTime.of(today, todayResumeTime), Action.RESUME, job1, user1);
+        JobAction todayFinishAction = new JobAction(LocalDateTime.of(today, todayFinishTime), Action.FINISH, job1, user1);
+        JobAction todayDenyAction = new JobAction(LocalDateTime.of(today, todayDenyTime), Action.DENY, job1, user3);
+        JobAction todayApproveAction = new JobAction(LocalDateTime.of(today, todayApprovalTime), Action.APPROVE, job1, user3);
+
+        List<JobAction> jobActionList = new ArrayList<>();
+        jobActionList.add(yesterdayStartAction);
+        jobActionList.add(yesterdayPauseAction);
+        jobActionList.add(todayResumeAction);
+        jobActionList.add(todayFinishAction);
+        jobActionList.add(todayDenyAction);
+        jobActionList.add(todayApproveAction);
+        job1.getAssignedEmployees().add(user1);
+
+        // set the job actions for this user
+        user1.getJobActions().add(yesterdayStartAction);
+        user1.getJobActions().add(yesterdayPauseAction);
+        user1.getJobActions().add(todayResumeAction);
+        user1.getJobActions().add(todayFinishAction);
+        user3.getJobActions().add(todayDenyAction);
+        user3.getJobActions().add(todayApproveAction);
+
+
+        job1.setJobActions(jobActionList);
+        job1.setJobStatus(JobStatus.COMPLETED);
+
+        Duration totalJobTime = jobService.calculateTotalJobTime(job1);
+
+        assertEquals(5, totalJobTime.toHoursPart());
+        assertEquals(16, totalJobTime.toMinutesPart());
+    }
 }

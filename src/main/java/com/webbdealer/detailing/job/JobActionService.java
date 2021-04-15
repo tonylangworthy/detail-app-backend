@@ -13,8 +13,6 @@ public interface JobActionService {
 
     JobAction logStartAction(Job job, User user, LocalDateTime actionAt);
 
-    JobAction logStopAction(Job job, User user, LocalDateTime actionAt);
-
     JobAction logPauseAction(Job job, User user, LocalDateTime actionAt);
 
     JobAction logResumeAction(Job job, User user, LocalDateTime actionAt);
@@ -30,5 +28,7 @@ public interface JobActionService {
     JobAction saveJobAction(JobAction jobAction);
 
     List<JobAction> fetchJobActionsByJob(Job job);
+
+    List<JobAction> fetchJobActionsByEmployee(User user);
 
 }

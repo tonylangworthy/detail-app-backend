@@ -35,11 +35,6 @@ public class JobActionServiceImpl implements JobActionService {
     }
 
     @Override
-    public JobAction logStopAction(Job job, User user, LocalDateTime actionAt) {
-        return new JobAction(actionAt, Action.STOP, job, user);
-    }
-
-    @Override
     public JobAction logPauseAction(Job job, User user, LocalDateTime actionAt) {
 
         return new JobAction(actionAt, Action.PAUSE, job, user);
@@ -79,6 +74,11 @@ public class JobActionServiceImpl implements JobActionService {
     @Override
     public List<JobAction> fetchJobActionsByJob(Job job) {
         return jobActionRepository.findByJobId(job.getId());
+    }
+
+    @Override
+    public List<JobAction> fetchJobActionsByEmployee(User user) {
+        return jobActionRepository.findByUser(user);
     }
 
 }

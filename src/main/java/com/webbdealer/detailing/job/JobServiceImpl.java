@@ -27,6 +27,7 @@ import javax.persistence.EntityNotFoundException;
 import javax.transaction.Transactional;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -188,7 +189,7 @@ public class JobServiceImpl implements JobService {
         else if(numberOfEmployeesOnJob(jobActions) == 1) {
             job.setJobStatus(JobStatus.AWAITING_APPROVAL);
         }
-        job.getJobActions().add(new JobAction(stopAt, Action.STOP, job, user));
+        job.getJobActions().add(new JobAction(stopAt, Action.FINISH, job, user));
         // If yes,
         // 2. Are there any other users on this job?
         // If yes, job stays active
@@ -309,7 +310,7 @@ public class JobServiceImpl implements JobService {
         Long vehicleId = createJobRequest.getVehicle().getId();
         Vehicle vehicle;
         if(vehicleId == null) {
-            vehicle = vehicleService.resumeJobfetchOrCreateVehicleFromRequest(companyId, createJobRequest.getVehicle());
+            vehicle = vehicleService.fetchOrCreateVehicleFromRequest(companyId, createJobRequest.getVehicle());
         }
         else {
             vehicle = vehicleService.fetchByIdReference(vehicleId);
@@ -498,11 +499,30 @@ public class JobServiceImpl implements JobService {
     }
 
     public Duration calculateTotalJobTime(Job job) {
-        List<User> assignedEmployees = job.getAssignedEmployees();
-        // Get the actions by assigned employee
 
+        List<User> assignedEmployees = job.getAssignedEmployees();
+        assignedEmployees.forEach(employee -> {
+            List<JobAction> filteredJobActions = filterJobActionByEmployee(employee);
+
+        });
 
 
         return Duration.ZERO;
+    }
+
+    public List<JobAction> filterJobActionByEmployee(User user) {
+        List<JobAction> filteredJobActions = new ArrayList<>();
+
+        List<JobAction> jobActions = user.getJobActions();
+        logger.info("job actions: " + jobActions.toString());
+        return jobActions;
+    }
+
+    public Duration getDurationOfTimeValues(LocalTime startTime, LocalTime stopTime) {
+        return Duration.between(startTime, stopTime);
+    }
+
+    public List<JobAction> filterStartStopTimes(List<JobAction> jobActions) {
+        return null;
     }
 }
