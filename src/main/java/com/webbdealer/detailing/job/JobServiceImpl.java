@@ -31,6 +31,8 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 @Service
 public class JobServiceImpl implements JobService {
@@ -522,8 +524,51 @@ public class JobServiceImpl implements JobService {
         return Duration.between(startTime, stopTime);
     }
 
-    public List<JobAction> filterStartStopTimes(List<JobAction> jobActions) {
+    public Map<String, JobAction> filterJobActionTimeBlocks(List<JobAction> jobActions) {
 
+        jobActions.sort(Comparator.comparing(JobAction::getJobActionAt));
+
+        Predicate<JobAction> startAction = jobAction -> jobAction.getAction().equals(Action.START);
+        Predicate<JobAction> pauseAction = jobAction -> jobAction.getAction().equals(Action.PAUSE);
+        Predicate<JobAction> resumeAction = jobAction -> jobAction.getAction().equals(Action.RESUME);
+        Predicate<JobAction> finishAction = jobAction -> jobAction.getAction().equals(Action.FINISH);
+        Predicate<JobAction> cancelAction = jobAction -> jobAction.getAction().equals(Action.CANCEL);
+
+
+
+
+        boolean isMatch = jobActions.stream()
+                .anyMatch(startAction.or(pauseAction));
+        logger.info("isMatch? " + isMatch);
+//                .map(jobAction -> {
+//                    System.out.println("Start Action: " + jobAction.getAction());
+//                    return jobAction.getAction();
+//                })
+//                .collect(Collectors.toList());
+
+
+        //        Map<String, LocalTime> startStopMap = new HashMap<>();
+//        List<Duration> durationList = new ArrayList<>();
+//        jobActions.forEach(jobAction -> {
+//            logger.info("action: " + jobAction.getAction());
+//            if(jobAction.getAction().equals(Action.START) || jobAction.getAction().equals(Action.RESUME)) {
+//                logger.info("Start Action");
+//                LocalTime startTime = jobAction.getJobActionAt().toLocalTime();
+//                startStopMap.put("start", startTime);
+//
+//            }
+//            if(jobAction.getAction().equals(Action.PAUSE) || jobAction.getAction().equals(Action.FINISH) || jobAction.getAction().equals(Action.CANCEL)) {
+//                logger.info("Stop Action");
+//                LocalTime stopTime = jobAction.getJobActionAt().toLocalTime();
+//                startStopMap.put("stop", stopTime);
+//            }
+//            LocalTime startTime = startStopMap.get("start");
+//            LocalTime stopTime = startStopMap.get("stop");
+//
+//            durationList.add(getDurationOfTimeValues(startTime, stopTime));
+//        });
+
+//        logger.info("duration list: " + durationList.toString());
         return null;
     }
 }

@@ -19,6 +19,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -346,7 +347,7 @@ public class JobServiceImplIntegrationTests {
         job1.setJobActions(jobActionList);
         job1.setJobStatus(JobStatus.COMPLETED);
 
-        List<JobAction> jobActions = jobService.filterStartStopTimes(jobActionList);
+        Map<String, JobAction> jobActions = jobService.filterJobActionTimeBlocks(jobActionList);
 
     }
 
