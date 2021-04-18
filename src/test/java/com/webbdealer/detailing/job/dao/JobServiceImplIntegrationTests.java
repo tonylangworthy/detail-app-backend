@@ -72,17 +72,17 @@ public class JobServiceImplIntegrationTests {
         yesterday = LocalDate.of(2021, 03, 28);
         today = LocalDate.of(2021, 03, 29);
         yesterdayStartTime = LocalTime.of(8, 33, 0);
-        yesterdayFinishTime = LocalTime.of(5, 2, 0);
-        yesterdayDenyTime = LocalTime.of(5, 30, 0);
-        yesterdayApprovalTime = LocalTime.of(5, 25, 0);
+        yesterdayFinishTime = LocalTime.of(17, 2, 0);
+        yesterdayDenyTime = LocalTime.of(17, 25, 0);
+        yesterdayApprovalTime = LocalTime.of(17, 30, 0);
         yesterdayPauseTime = LocalTime.of(11, 32, 0);
         yesterdayResumeTime = LocalTime.of(12, 3, 0);
         todayStartTime = LocalTime.of(8, 2, 0);
-        todayFinishTime = LocalTime.of(2, 15, 0);
+        todayFinishTime = LocalTime.of(14, 15, 0);
         todayPauseTime = LocalTime.of(11, 25, 0);
         todayResumeTime = LocalTime.of(11, 58, 0);
-        todayDenyTime = LocalTime.of(5, 30, 0);
-        todayApprovalTime = LocalTime.of(5, 25, 0);
+        todayDenyTime = LocalTime.of(17, 02, 0);
+        todayApprovalTime = LocalTime.of(17, 25, 0);
 
         job1 = new Job();
         job2 = new Job();
@@ -318,7 +318,7 @@ public class JobServiceImplIntegrationTests {
     }
 
     @Test
-    public void filterStartStopTimes_Test() {
+    public void filterJobActionTimeBlocks_Test() {
         JobAction yesterdayStartAction = new JobAction(LocalDateTime.of(yesterday, yesterdayStartTime), Action.START, job1, user1);
         JobAction yesterdayPauseAction = new JobAction(LocalDateTime.of(yesterday, yesterdayPauseTime), Action.PAUSE, job1, user1);
         JobAction todayResumeAction = new JobAction(LocalDateTime.of(today, todayResumeTime), Action.RESUME, job1, user1);
@@ -327,12 +327,12 @@ public class JobServiceImplIntegrationTests {
         JobAction todayApproveAction = new JobAction(LocalDateTime.of(today, todayApprovalTime), Action.APPROVE, job1, user3);
 
         List<JobAction> jobActionList = new ArrayList<>();
-        jobActionList.add(yesterdayStartAction);
-        jobActionList.add(yesterdayPauseAction);
         jobActionList.add(todayResumeAction);
         jobActionList.add(todayFinishAction);
-        jobActionList.add(todayDenyAction);
+        jobActionList.add(yesterdayStartAction);
         jobActionList.add(todayApproveAction);
+        jobActionList.add(yesterdayPauseAction);
+        jobActionList.add(todayDenyAction);
         job1.getAssignedEmployees().add(user1);
 
         // set the job actions for this user
@@ -347,7 +347,7 @@ public class JobServiceImplIntegrationTests {
         job1.setJobActions(jobActionList);
         job1.setJobStatus(JobStatus.COMPLETED);
 
-        Map<String, JobAction> jobActions = jobService.filterJobActionTimeBlocks(jobActionList);
+        List<Duration> jobTimeBlocks = jobService.filterJobActionTimeBlocks(jobActionList);
 
     }
 

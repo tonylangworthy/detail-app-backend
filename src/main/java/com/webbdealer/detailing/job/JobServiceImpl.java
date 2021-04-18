@@ -524,51 +524,35 @@ public class JobServiceImpl implements JobService {
         return Duration.between(startTime, stopTime);
     }
 
-    public Map<String, JobAction> filterJobActionTimeBlocks(List<JobAction> jobActions) {
+    public List<Duration> filterJobActionTimeBlocks(List<JobAction> jobActions) {
 
         jobActions.sort(Comparator.comparing(JobAction::getJobActionAt));
 
-        Predicate<JobAction> startAction = jobAction -> jobAction.getAction().equals(Action.START);
-        Predicate<JobAction> pauseAction = jobAction -> jobAction.getAction().equals(Action.PAUSE);
-        Predicate<JobAction> resumeAction = jobAction -> jobAction.getAction().equals(Action.RESUME);
-        Predicate<JobAction> finishAction = jobAction -> jobAction.getAction().equals(Action.FINISH);
-        Predicate<JobAction> cancelAction = jobAction -> jobAction.getAction().equals(Action.CANCEL);
+        List<Duration> durationBlocks = new ArrayList<>();
 
+        JobAction[] startStopArray = new JobAction[2];
 
+        for(JobAction jobAction : jobActions) {
+            Action action = jobAction.getAction();
+            logger.info("action: " + jobAction.getAction() + " --- actionAt: " + jobAction.getJobActionAt());
 
+            if(action.equals(Action.START) || action.equals(Action.RESUME)) {
+//                logger.info("start action: " + action);
+                startStopArray[0] = jobAction;
+            }
+            if(action.equals(Action.PAUSE) || action.equals(Action.FINISH) || action.equals(Action.CANCEL)) {
+//                logger.info("stop action: " + action);
+                startStopArray[1] = jobAction;
+                LocalTime startTime = startStopArray[0].getJobActionAt().toLocalTime();
+                LocalTime stopTime = startStopArray[1].getJobActionAt().toLocalTime();
+                durationBlocks.add(Duration.between(startTime, stopTime));
+                logger.info("start: " + startStopArray[0].getJobActionAt() + " | stop: " + startStopArray[1].getJobActionAt());
+                startStopArray = new JobAction[2];
+            }
+//            logger.info(startStopArray.toString());
+        }
 
-        boolean isMatch = jobActions.stream()
-                .anyMatch(startAction.or(pauseAction));
-        logger.info("isMatch? " + isMatch);
-//                .map(jobAction -> {
-//                    System.out.println("Start Action: " + jobAction.getAction());
-//                    return jobAction.getAction();
-//                })
-//                .collect(Collectors.toList());
-
-
-        //        Map<String, LocalTime> startStopMap = new HashMap<>();
-//        List<Duration> durationList = new ArrayList<>();
-//        jobActions.forEach(jobAction -> {
-//            logger.info("action: " + jobAction.getAction());
-//            if(jobAction.getAction().equals(Action.START) || jobAction.getAction().equals(Action.RESUME)) {
-//                logger.info("Start Action");
-//                LocalTime startTime = jobAction.getJobActionAt().toLocalTime();
-//                startStopMap.put("start", startTime);
-//
-//            }
-//            if(jobAction.getAction().equals(Action.PAUSE) || jobAction.getAction().equals(Action.FINISH) || jobAction.getAction().equals(Action.CANCEL)) {
-//                logger.info("Stop Action");
-//                LocalTime stopTime = jobAction.getJobActionAt().toLocalTime();
-//                startStopMap.put("stop", stopTime);
-//            }
-//            LocalTime startTime = startStopMap.get("start");
-//            LocalTime stopTime = startStopMap.get("stop");
-//
-//            durationList.add(getDurationOfTimeValues(startTime, stopTime));
-//        });
-
-//        logger.info("duration list: " + durationList.toString());
-        return null;
+        logger.info("total job duration: " + durationBlocks.toString());
+        return durationBlocks;
     }
 }
