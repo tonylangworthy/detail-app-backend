@@ -500,35 +500,34 @@ public class JobServiceImpl implements JobService {
         return employeeIds.size();
     }
 
-    public Duration calculateTotalJobTime(Job job) {
+    public List<JobAction[]> filterJobActionByEmployee(User user, List<JobAction[]> jobTimeBlocks) {
+        return jobTimeBlocks.stream()
+                .filter(action -> action[0].getUser().equals(user))
+                .filter(action -> action[1].getUser().equals(user))
+                .collect(Collectors.toList());
+    }
 
-        List<User> assignedEmployees = job.getAssignedEmployees();
-        assignedEmployees.forEach(employee -> {
-            List<JobAction> filteredJobActions = filterJobActionByEmployee(employee);
+    public Duration calculateTotalJobTime(List<JobAction[]> jobTimeBlocks) {
+        List<Duration> durationList = new ArrayList<>();
 
+        jobTimeBlocks.forEach(jobActionArray -> {
+            LocalTime startTime = jobActionArray[0].getJobActionAt().toLocalTime();
+            LocalTime stopTime = jobActionArray[1].getJobActionAt().toLocalTime();
+            durationList.add(Duration.between(startTime, stopTime));
         });
 
+        logger.info("duration list: " + durationList.toString());
 
-        return Duration.ZERO;
+        Duration totalDuration = durationList.stream()
+                .reduce(Duration.ZERO, (duration1, duration2) -> duration1.plus(duration2));
+        return totalDuration;
     }
 
-    public List<JobAction> filterJobActionByEmployee(User user) {
-        List<JobAction> filteredJobActions = new ArrayList<>();
-
-        List<JobAction> jobActions = user.getJobActions();
-        logger.info("job actions: " + jobActions.toString());
-        return jobActions;
-    }
-
-    public Duration getDurationOfTimeValues(LocalTime startTime, LocalTime stopTime) {
-        return Duration.between(startTime, stopTime);
-    }
-
-    public List<Duration> filterJobActionTimeBlocks(List<JobAction> jobActions) {
+    public List<JobAction[]> filterJobActionTimeBlocks(List<JobAction> jobActions) {
 
         jobActions.sort(Comparator.comparing(JobAction::getJobActionAt));
 
-        List<Duration> durationBlocks = new ArrayList<>();
+        List<JobAction[]> durationBlocks = new ArrayList<>();
 
         JobAction[] startStopArray = new JobAction[2];
 
@@ -543,16 +542,14 @@ public class JobServiceImpl implements JobService {
             if(action.equals(Action.PAUSE) || action.equals(Action.FINISH) || action.equals(Action.CANCEL)) {
 //                logger.info("stop action: " + action);
                 startStopArray[1] = jobAction;
-                LocalTime startTime = startStopArray[0].getJobActionAt().toLocalTime();
-                LocalTime stopTime = startStopArray[1].getJobActionAt().toLocalTime();
-                durationBlocks.add(Duration.between(startTime, stopTime));
+
+                durationBlocks.add(startStopArray);
                 logger.info("start: " + startStopArray[0].getJobActionAt() + " | stop: " + startStopArray[1].getJobActionAt());
                 startStopArray = new JobAction[2];
             }
 //            logger.info(startStopArray.toString());
         }
 
-        logger.info("total job duration: " + durationBlocks.toString());
         return durationBlocks;
     }
 }

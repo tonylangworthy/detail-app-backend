@@ -51,8 +51,12 @@ public class JobServiceImplIntegrationTests {
 
     private JobServiceImpl jobService;
     private JobActionServiceImpl jobActionService;
+    private LocalDate lastWeek;
     private LocalDate yesterday;
     private LocalDate today;
+    private LocalTime lastWeekStartTime;
+    private LocalTime lastWeekPauseTime;
+    private LocalTime lastWeekResumeTime;
     private LocalTime yesterdayStartTime;
     private LocalTime yesterdayFinishTime;
     private LocalTime yesterdayPauseTime;
@@ -63,14 +67,19 @@ public class JobServiceImplIntegrationTests {
     private LocalTime todayResumeTime;
     private LocalTime yesterdayDenyTime;
     private LocalTime yesterdayApprovalTime;
+    private LocalTime todayCancelTime;
     private LocalTime todayDenyTime;
     private LocalTime todayApprovalTime;
 
     @BeforeEach
     public void initJobs() {
         System.out.println("BeforeEach called");
+        lastWeek = LocalDate.of(2021, 03, 23);
         yesterday = LocalDate.of(2021, 03, 28);
         today = LocalDate.of(2021, 03, 29);
+        lastWeekStartTime = LocalTime.of(5, 27, 0);
+        lastWeekPauseTime = LocalTime.of(9, 3, 0);
+        lastWeekResumeTime = LocalTime.of(8, 33, 0);
         yesterdayStartTime = LocalTime.of(8, 33, 0);
         yesterdayFinishTime = LocalTime.of(17, 2, 0);
         yesterdayDenyTime = LocalTime.of(17, 25, 0);
@@ -81,6 +90,7 @@ public class JobServiceImplIntegrationTests {
         todayFinishTime = LocalTime.of(14, 15, 0);
         todayPauseTime = LocalTime.of(11, 25, 0);
         todayResumeTime = LocalTime.of(11, 58, 0);
+        todayCancelTime = LocalTime.of(15, 13, 0);
         todayDenyTime = LocalTime.of(17, 02, 0);
         todayApprovalTime = LocalTime.of(17, 25, 0);
 
@@ -275,49 +285,6 @@ public class JobServiceImplIntegrationTests {
     }
 
     @Test
-    public void filterJobActionByEmployee_Equals4_Test() {
-
-        JobAction yesterdayStartAction = new JobAction(LocalDateTime.of(yesterday, yesterdayStartTime), Action.START, job1, user1);
-        JobAction yesterdayPauseAction = new JobAction(LocalDateTime.of(yesterday, yesterdayPauseTime), Action.PAUSE, job1, user1);
-        JobAction todayResumeAction = new JobAction(LocalDateTime.of(today, todayResumeTime), Action.RESUME, job1, user1);
-        JobAction todayFinishAction = new JobAction(LocalDateTime.of(today, todayFinishTime), Action.FINISH, job1, user1);
-        JobAction todayDenyAction = new JobAction(LocalDateTime.of(today, todayDenyTime), Action.DENY, job1, user3);
-        JobAction todayApproveAction = new JobAction(LocalDateTime.of(today, todayApprovalTime), Action.APPROVE, job1, user3);
-
-        List<JobAction> jobActionList = new ArrayList<>();
-        jobActionList.add(yesterdayStartAction);
-        jobActionList.add(yesterdayPauseAction);
-        jobActionList.add(todayResumeAction);
-        jobActionList.add(todayFinishAction);
-        jobActionList.add(todayDenyAction);
-        jobActionList.add(todayApproveAction);
-        job1.getAssignedEmployees().add(user1);
-
-        // set the job actions for this user
-        user1.getJobActions().add(yesterdayStartAction);
-        user1.getJobActions().add(yesterdayPauseAction);
-        user1.getJobActions().add(todayResumeAction);
-        user1.getJobActions().add(todayFinishAction);
-        user3.getJobActions().add(todayDenyAction);
-        user3.getJobActions().add(todayApproveAction);
-
-        job1.setJobActions(jobActionList);
-        job1.setJobStatus(JobStatus.COMPLETED);
-
-        List<JobAction> filteredJobActions = jobService.filterJobActionByEmployee(user1);
-        assertEquals(4, filteredJobActions.size());
-    }
-
-    @Test
-    public void getDurationOfTimeValues_Test() {
-        Duration duration = jobService.getDurationOfTimeValues(yesterdayStartTime, yesterdayPauseTime);
-        System.out.println("duration: " + duration.toString());
-
-        assertEquals(2, duration.toHoursPart());
-        assertEquals(59, duration.toMinutesPart());
-    }
-
-    @Test
     public void filterJobActionTimeBlocks_Test() {
         JobAction yesterdayStartAction = new JobAction(LocalDateTime.of(yesterday, yesterdayStartTime), Action.START, job1, user1);
         JobAction yesterdayPauseAction = new JobAction(LocalDateTime.of(yesterday, yesterdayPauseTime), Action.PAUSE, job1, user1);
@@ -347,7 +314,11 @@ public class JobServiceImplIntegrationTests {
         job1.setJobActions(jobActionList);
         job1.setJobStatus(JobStatus.COMPLETED);
 
-        List<Duration> jobTimeBlocks = jobService.filterJobActionTimeBlocks(jobActionList);
+        List<JobAction[]> jobTimeBlocks = jobService.filterJobActionTimeBlocks(jobActionList);
+        jobTimeBlocks.forEach(jobTimeBlock -> {
+            System.out.println("Start Action: " + jobTimeBlock[0].getAction());
+            System.out.println("Stop Action: " + jobTimeBlock[1].getAction());
+        });
 
     }
 
@@ -381,9 +352,189 @@ public class JobServiceImplIntegrationTests {
         job1.setJobActions(jobActionList);
         job1.setJobStatus(JobStatus.COMPLETED);
 
-        Duration totalJobTime = jobService.calculateTotalJobTime(job1);
+        List<JobAction[]> jobTimeBlocks = jobService.filterJobActionTimeBlocks(jobActionList);
+
+        Duration totalJobTime = jobService.calculateTotalJobTime(jobTimeBlocks);
+
+        System.out.println("Total job time: " + totalJobTime);
 
         assertEquals(5, totalJobTime.toHoursPart());
         assertEquals(16, totalJobTime.toMinutesPart());
     }
+
+    @Test
+    public void calculateTotalJobTime_TwoEmployee_Test() {
+        JobAction lastWeekStartAction = new JobAction(LocalDateTime.of(lastWeek, lastWeekStartTime), Action.START, job1, user1);
+        JobAction lastWeekPauseAction = new JobAction(LocalDateTime.of(lastWeek, lastWeekPauseTime), Action.PAUSE, job1, user1);
+        JobAction yesterdayResumeAction = new JobAction(LocalDateTime.of(yesterday, yesterdayResumeTime), Action.RESUME, job1, user2);
+        JobAction yesterdayPauseAction = new JobAction(LocalDateTime.of(yesterday, LocalTime.of(18, 5, 0)), Action.PAUSE, job1, user2);
+        JobAction todayResumeAction = new JobAction(LocalDateTime.of(today, todayResumeTime), Action.RESUME, job1, user2);
+        JobAction todayCancelAction = new JobAction(LocalDateTime.of(today, todayCancelTime), Action.CANCEL, job1, user3);
+
+        List<JobAction> jobActionList = new ArrayList<>();
+        jobActionList.add(lastWeekStartAction);
+        jobActionList.add(lastWeekPauseAction);
+        jobActionList.add(yesterdayResumeAction);
+        jobActionList.add(yesterdayPauseAction);
+        jobActionList.add(todayResumeAction);
+        jobActionList.add(todayCancelAction);
+        job1.getAssignedEmployees().add(user1);
+        job1.getAssignedEmployees().add(user2);
+
+        // set the job actions for this user
+        user1.getJobActions().add(lastWeekStartAction);
+        user1.getJobActions().add(lastWeekPauseAction);
+        user2.getJobActions().add(yesterdayResumeAction);
+        user2.getJobActions().add(yesterdayPauseAction);
+        user2.getJobActions().add(todayResumeAction);
+        user3.getJobActions().add(todayCancelAction);
+
+
+        job1.setJobActions(jobActionList);
+        job1.setJobStatus(JobStatus.CANCELLED);
+
+        List<JobAction[]> jobTimeBlocks = jobService.filterJobActionTimeBlocks(jobActionList);
+
+        Duration totalJobTime = jobService.calculateTotalJobTime(jobTimeBlocks);
+
+        System.out.println("Total job time: " + totalJobTime);
+
+        assertEquals(12, totalJobTime.toHoursPart());
+        assertEquals(53, totalJobTime.toMinutesPart());
+    }
+
+    @Test
+    public void calculateJobTimeByEmployee1_Test() {
+        JobAction lastWeekStartAction = new JobAction(LocalDateTime.of(lastWeek, lastWeekStartTime), Action.START, job1, user1);
+        JobAction lastWeekPauseAction = new JobAction(LocalDateTime.of(lastWeek, lastWeekPauseTime), Action.PAUSE, job1, user1);
+        JobAction yesterdayResumeAction = new JobAction(LocalDateTime.of(yesterday, yesterdayResumeTime), Action.RESUME, job1, user2);
+        JobAction yesterdayPauseAction = new JobAction(LocalDateTime.of(yesterday, LocalTime.of(18, 5, 0)), Action.PAUSE, job1, user2);
+        JobAction todayResumeAction = new JobAction(LocalDateTime.of(today, todayResumeTime), Action.RESUME, job1, user2);
+        JobAction todayCancelAction = new JobAction(LocalDateTime.of(today, todayCancelTime), Action.CANCEL, job1, user3);
+
+        List<JobAction> jobActionList = new ArrayList<>();
+        jobActionList.add(lastWeekStartAction);
+        jobActionList.add(lastWeekPauseAction);
+        jobActionList.add(yesterdayResumeAction);
+        jobActionList.add(yesterdayPauseAction);
+        jobActionList.add(todayResumeAction);
+        jobActionList.add(todayCancelAction);
+        job1.getAssignedEmployees().add(user1);
+        job1.getAssignedEmployees().add(user2);
+
+        // set the job actions for this user
+        user1.getJobActions().add(lastWeekStartAction);
+        user1.getJobActions().add(lastWeekPauseAction);
+        user2.getJobActions().add(yesterdayResumeAction);
+        user2.getJobActions().add(yesterdayPauseAction);
+        user2.getJobActions().add(todayResumeAction);
+        user3.getJobActions().add(todayCancelAction);
+
+
+        job1.setJobActions(jobActionList);
+        job1.setJobStatus(JobStatus.CANCELLED);
+
+//        List<JobAction> user1JobActions = jobService.filterJobActionByEmployee(user1);
+
+        List<JobAction[]> jobTimeBlocks = jobService.filterJobActionTimeBlocks(jobActionList);
+
+        List<JobAction[]> employeeTimeBlocks = jobService.filterJobActionByEmployee(user1, jobTimeBlocks);
+
+        Duration totalJobTime = jobService.calculateTotalJobTime(employeeTimeBlocks);
+
+        System.out.println("Total job time: " + totalJobTime);
+
+        assertEquals(3, totalJobTime.toHoursPart());
+        assertEquals(36, totalJobTime.toMinutesPart());
+    }
+
+    @Test
+    public void calculateJobTimeByEmployee2_Test() {
+        JobAction lastWeekStartAction = new JobAction(LocalDateTime.of(lastWeek, lastWeekStartTime), Action.START, job1, user1);
+        JobAction lastWeekPauseAction = new JobAction(LocalDateTime.of(lastWeek, lastWeekPauseTime), Action.PAUSE, job1, user1);
+        JobAction yesterdayResumeAction = new JobAction(LocalDateTime.of(yesterday, yesterdayResumeTime), Action.RESUME, job1, user2);
+        JobAction yesterdayPauseAction = new JobAction(LocalDateTime.of(yesterday, LocalTime.of(18, 5, 0)), Action.PAUSE, job1, user2);
+        JobAction todayResumeAction = new JobAction(LocalDateTime.of(today, todayResumeTime), Action.RESUME, job1, user2);
+        JobAction todayCancelAction = new JobAction(LocalDateTime.of(today, todayCancelTime), Action.CANCEL, job1, user3);
+
+        List<JobAction> jobActionList = new ArrayList<>();
+        jobActionList.add(lastWeekStartAction);
+        jobActionList.add(lastWeekPauseAction);
+        jobActionList.add(yesterdayResumeAction);
+        jobActionList.add(yesterdayPauseAction);
+        jobActionList.add(todayResumeAction);
+        jobActionList.add(todayCancelAction);
+        job1.getAssignedEmployees().add(user1);
+        job1.getAssignedEmployees().add(user2);
+
+        // set the job actions for this user
+        user1.getJobActions().add(lastWeekStartAction);
+        user1.getJobActions().add(lastWeekPauseAction);
+        user2.getJobActions().add(yesterdayResumeAction);
+        user2.getJobActions().add(yesterdayPauseAction);
+        user2.getJobActions().add(todayResumeAction);
+        user3.getJobActions().add(todayCancelAction);
+
+
+        job1.setJobActions(jobActionList);
+        job1.setJobStatus(JobStatus.CANCELLED);
+
+        List<JobAction[]> jobTimeBlocks = jobService.filterJobActionTimeBlocks(jobActionList);
+
+        List<JobAction[]> employeeTimeBlocks = jobService.filterJobActionByEmployee(user2, jobTimeBlocks);
+        employeeTimeBlocks.forEach(jobActions -> {
+            System.out.println("employee 2 action: " + jobActions[0].getAction());
+        });
+
+        Duration totalJobTime = jobService.calculateTotalJobTime(employeeTimeBlocks);
+
+        System.out.println("Total job time: " + totalJobTime);
+
+        assertEquals(9, totalJobTime.toHoursPart());
+        assertEquals(17, totalJobTime.toMinutesPart());
+    }
+
+    @Test
+    public void calculateJobTimeByEmployee3_Test() {
+        JobAction lastWeekStartAction = new JobAction(LocalDateTime.of(lastWeek, lastWeekStartTime), Action.START, job1, user1);
+        JobAction lastWeekPauseAction = new JobAction(LocalDateTime.of(lastWeek, lastWeekPauseTime), Action.PAUSE, job1, user1);
+        JobAction yesterdayResumeAction = new JobAction(LocalDateTime.of(yesterday, yesterdayResumeTime), Action.RESUME, job1, user2);
+        JobAction yesterdayPauseAction = new JobAction(LocalDateTime.of(yesterday, LocalTime.of(18, 5, 0)), Action.PAUSE, job1, user2);
+        JobAction todayResumeAction = new JobAction(LocalDateTime.of(today, todayResumeTime), Action.RESUME, job1, user2);
+        JobAction todayCancelAction = new JobAction(LocalDateTime.of(today, todayCancelTime), Action.CANCEL, job1, user3);
+
+        List<JobAction> jobActionList = new ArrayList<>();
+        jobActionList.add(lastWeekStartAction);
+        jobActionList.add(lastWeekPauseAction);
+        jobActionList.add(yesterdayResumeAction);
+        jobActionList.add(yesterdayPauseAction);
+        jobActionList.add(todayResumeAction);
+        jobActionList.add(todayCancelAction);
+        job1.getAssignedEmployees().add(user1);
+        job1.getAssignedEmployees().add(user2);
+
+        // set the job actions for this user
+        user1.getJobActions().add(lastWeekStartAction);
+        user1.getJobActions().add(lastWeekPauseAction);
+        user2.getJobActions().add(yesterdayResumeAction);
+        user2.getJobActions().add(yesterdayPauseAction);
+        user2.getJobActions().add(todayResumeAction);
+        user3.getJobActions().add(todayCancelAction);
+
+
+        job1.setJobActions(jobActionList);
+        job1.setJobStatus(JobStatus.CANCELLED);
+
+//        List<JobAction> user1JobActions = jobService.filterJobActionByEmployee(user1);
+
+        List<JobAction[]> jobTimeBlocks = jobService.filterJobActionTimeBlocks(jobActionList);
+
+        Duration totalJobTime = jobService.calculateTotalJobTime(jobTimeBlocks);
+
+        System.out.println("Total job time: " + totalJobTime);
+
+        assertEquals(3, totalJobTime.toHoursPart());
+        assertEquals(36, totalJobTime.toMinutesPart());
+    }
+
 }
