@@ -501,6 +501,8 @@ public class JobServiceImpl implements JobService {
     }
 
     public List<JobAction[]> filterJobActionByEmployee(User user, List<JobAction[]> jobTimeBlocks) {
+
+
         return jobTimeBlocks.stream()
                 .filter(action -> action[0].getUser().equals(user))
                 .filter(action -> action[1].getUser().equals(user))
@@ -539,7 +541,7 @@ public class JobServiceImpl implements JobService {
 //                logger.info("start action: " + action);
                 startStopArray[0] = jobAction;
             }
-            if(action.equals(Action.PAUSE) || action.equals(Action.FINISH) || action.equals(Action.CANCEL)) {
+            if(action.equals(Action.PAUSE) || action.equals(Action.FINISH)) {
 //                logger.info("stop action: " + action);
                 startStopArray[1] = jobAction;
 
