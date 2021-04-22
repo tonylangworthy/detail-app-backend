@@ -3,9 +3,9 @@ package com.webbdealer.detailing.job;
 import com.webbdealer.detailing.employee.EmployeeService;
 import com.webbdealer.detailing.employee.dao.User;
 import com.webbdealer.detailing.job.dao.*;
+import com.webbdealer.detailing.job.events.StartActionEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
-import org.springframework.context.ApplicationEventPublisherAware;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -31,7 +31,9 @@ public class JobActionServiceImpl implements JobActionService {
 
     @Override
     public JobAction logStartAction(Job job, User user, LocalDateTime actionAt) {
-        return new JobAction(actionAt, Action.START, job, user);
+        JobAction jobAction = new JobAction(actionAt, Action.START, job, user);
+        publisher.publishEvent(new StartActionEvent(this, jobAction));
+        return jobAction;
     }
 
     @Override

@@ -135,8 +135,12 @@ public class JobServiceImpl implements JobService {
 
             // Create a new action for this job
             JobAction startAction = jobActionService.logStartAction(job, user, startAt);
+            jobActionService.saveJobAction(startAction);
 
             job.getJobActions().add(startAction);
+        }
+        else if(job.getJobStatus().equals(JobStatus.ACTIVE)) {
+            throw new InvalidJobActionException(("This job has already been started."));
         }
         return job;
     }
@@ -221,8 +225,8 @@ public class JobServiceImpl implements JobService {
         else if(job.getJobStatus().equals(JobStatus.PENDING)
                 || job.getJobStatus().equals(JobStatus.COMPLETED)) {
 
-            logger.info("Job cannot be paused");
-            throw new InvalidJobStatusException(("This job cannot be stopped at this time."));
+            logger.info("Job has to be started before it can be paused.");
+            throw new InvalidJobStatusException(("Job has to be started before it can be paused."));
         }
         else if(isJobPaused(job)) {
             logger.info("Job is already paused");
@@ -230,7 +234,9 @@ public class JobServiceImpl implements JobService {
         }
         else if(numberOfEmployeesOnJob(jobActions) == 1) {
             job.setJobStatus(JobStatus.PAUSED);
-            // Store which job will be paused, which user paused it, and what time it was paused
+
+            JobAction jobAction = jobActionService.logPauseAction(job, user, pauseAt);
+            jobActionService.saveJobAction(jobAction);
         }
         // When job is paused by admin, the time for all users on this job stops
         return job;
@@ -241,6 +247,9 @@ public class JobServiceImpl implements JobService {
         // If job is paused, we can resume
         if(isJobPaused(job)) {
             job.setJobStatus(JobStatus.ACTIVE);
+
+            JobAction jobAction = jobActionService.logResumeAction(job, user, resumeAt);
+            jobActionService.saveJobAction(jobAction);
         }
         // else throw an exception
         else {
@@ -255,9 +264,13 @@ public class JobServiceImpl implements JobService {
         // ONLY ADMIN OR MANAGER CAN CANCEL JOB
         // Job can be in any state to be cancelled
         job.setJobStatus(JobStatus.CANCELLED);
+
+        // The the employees that are active on this job, then send a PAUSE action
+        // any actions on the job must be stopped (paused)
+
+
         jobActionService.logCancelAction(job, user, cancelAt);
 
-        // any actions on the job must be stopped
 
         return job;
     }
@@ -353,6 +366,9 @@ public class JobServiceImpl implements JobService {
 
         reconditionService.attachReconServicesToJob(createJobRequest.getServiceIds(), job);
         companyService.attachJobToCompany(job, companyId);
+
+        // New jobs are set to PENDING status
+        job.setJobStatus(JobStatus.PENDING);
 
         return jobRepository.save(job);
     }
