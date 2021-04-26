@@ -37,14 +37,12 @@ public interface JobService {
 
     Job cancelJob(Job job, User user, LocalDateTime cancelAt);
 
-    Job addEmployeeToJob(Job job, User user, LocalDateTime startAt);
-
-    Job removeEmployeeFromJob(Job job, User user, LocalDateTime stopAt);
-
     Duration jobTotalTime(Job job);
 
     Job storeJobFromRequest(Long companyId, CreateJobRequest createJobRequest);
 
     Job storeJob(Long companyId, Job job);
+
+    Job storeJobStatus(Job job);
 
 }

@@ -19,10 +19,6 @@ public interface TimeClockService {
 
     void punchTimeClock(Long userId, TimeClockRequest timeClockRequest);
 
-    void clockInAt(TimeClockRequest timeClockRequest);
-
-    void clockOutAt(TimeClockRequest timeClockRequest);
-
     Duration totalHoursWorkedByDay(Long userId, LocalDate day);
 
     Duration totalHoursWorked(Long userId, TemporalAccessor temporal);

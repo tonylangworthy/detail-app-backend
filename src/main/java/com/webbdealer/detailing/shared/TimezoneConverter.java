@@ -12,13 +12,16 @@ public class TimezoneConverter {
         this.zoneId = builder.zoneId;
     }
 
-    public LocalDateTime fromUtcToLocalDateTime(ZonedDateTime utcDateTime) {
-        return utcDateTime.withZoneSameInstant(ZoneId.of(zoneId)).toLocalDateTime();
+    public LocalDateTime fromUtcToLocalDateTime(LocalDateTime utcDateTime) {
+//        return utcDateTime.withZoneSameInstant(ZoneId.of(zoneId)).toLocalDateTime();
+        return null;
     }
 
-    public ZonedDateTime fromLocalDateTimeToUtc(LocalDateTime localDateTime) {
-        return localDateTime.atZone(ZoneId.of(zoneId)).withZoneSameInstant(ZoneId.of("UTC"));
+    public LocalDateTime fromLocalDateTimeToUtc(LocalDateTime localDateTime) {
+//        return localDateTime.atZone(ZoneId.of(zoneId)).withZoneSameInstant(ZoneId.of("UTC"));
+        return null;
     }
+
 
     public static class TimezoneConverterBuilder {
 

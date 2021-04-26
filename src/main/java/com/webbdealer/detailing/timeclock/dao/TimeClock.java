@@ -18,7 +18,7 @@ public class TimeClock {
     private Long id;
 
     @Column(name = "clocked_at", nullable = false, columnDefinition = "TIMESTAMP WITH TIME ZONE")
-    private ZonedDateTime clockedAt;
+    private LocalDateTime clockedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "clocked_reason_id", nullable = false)
@@ -38,7 +38,7 @@ public class TimeClock {
     public TimeClock() {}
 
     public TimeClock(
-            ZonedDateTime clockedAt,
+            LocalDateTime clockedAt,
             ClockedReason clockedReason,
             String employeeNote,
             ClockedStatus clockedStatus,
@@ -59,11 +59,11 @@ public class TimeClock {
         this.id = id;
     }
 
-    public ZonedDateTime getClockedAt() {
+    public LocalDateTime getClockedAt() {
         return clockedAt;
     }
 
-    public void setClockedAt(ZonedDateTime clockedAt) {
+    public void setClockedAt(LocalDateTime clockedAt) {
         this.clockedAt = clockedAt;
     }
 

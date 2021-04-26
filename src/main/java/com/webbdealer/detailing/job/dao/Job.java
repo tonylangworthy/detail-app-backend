@@ -1,6 +1,7 @@
 package com.webbdealer.detailing.job.dao;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.webbdealer.detailing.company.dao.Company;
 import com.webbdealer.detailing.customer.dao.Customer;
 import com.webbdealer.detailing.employee.dao.User;
@@ -77,9 +78,9 @@ public class Job extends BaseEntity implements Serializable {
 
     @ManyToMany
     @JoinTable(
-            name = "users_jobs",
-            joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
-            inverseJoinColumns = @JoinColumn(name = "job_id", referencedColumnName = "id"))
+            name = "jobs_users",
+            joinColumns = @JoinColumn(name = "job_id", referencedColumnName = "id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"))
     private List<User> assignedEmployees = new ArrayList<>();
 
     public JobStatus getJobStatus() {

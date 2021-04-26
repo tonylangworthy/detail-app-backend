@@ -127,8 +127,8 @@ public class JobController {
                 output = "job started";
                 jobService.startJob(job, user, actionAt);
                 break;
-            case "stop":
-                output = "job stopped";
+            case "finish":
+                output = "job finished";
                 jobService.markJobAsFinished(job, user, actionAt);
                 break;
             case "pause":
@@ -142,6 +142,14 @@ public class JobController {
             case "cancel":
                 output = "job canceled";
                 jobService.cancelJob(job, user, actionAt);
+                break;
+            case "approve":
+                output = "job approved";
+                jobService.approveJob(job, user, actionAt);
+                break;
+            case "deny":
+                output = "job denied";
+                jobService.denyJob(job, user, actionAt);
                 break;
             default:
                 output = "invalid action!";

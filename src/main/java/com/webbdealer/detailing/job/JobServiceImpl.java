@@ -110,6 +110,7 @@ public class JobServiceImpl implements JobService {
     }
 
     @Override
+    @Transactional
     public Job startJob(Job job, User user, LocalDateTime startAt) throws InvalidJobStatusException, InvalidJobActionException {
         // 1. Is this user already working this job?
         // if yes, throw exception
@@ -118,30 +119,25 @@ public class JobServiceImpl implements JobService {
         // A user should only be active on one job at a time
         // else, mark this job as active
 
-        // First, job has to be in PENDING status
-        if(isJobPending(job)) {
+        if(!isJobPending(job)) {
+            throw new InvalidJobStatusException("Job has already been started.");
+        }
+        else if(hasEmployeeStartedJob(job, user)) {
+            throw new InvalidJobActionException("Employee "+user.getUserName()+" has already started this job.");
+        }
+        else {
             job.setJobStatus(JobStatus.ACTIVE);
-
-            List<JobAction> jobActions = job.getJobActions();
-
-            if(isJobCompleted(job)) {
-                logger.info("Job has already been completed");
-                throw new InvalidJobStatusException(("This job has already been completed."));
-            }
-            else if(hasEmployeeStartedJob(jobActions, user.getId())) {
-                logger.info("This employee has already started this job.");
-                throw new InvalidJobActionException(("This employee has already started this job."));
-            }
+            storeJob(user.getCompany().getId(), job);
 
             // Create a new action for this job
             JobAction startAction = jobActionService.logStartAction(job, user, startAt);
-            jobActionService.saveJobAction(startAction);
 
-            job.getJobActions().add(startAction);
+            job.getJobActions().add(startAction); // adds the job action to this job
+            job.getAssignedEmployees().add(user); // adds this user to the list of assigned employees
+
+            jobActionService.saveJobAction(startAction);
         }
-        else if(job.getJobStatus().equals(JobStatus.ACTIVE)) {
-            throw new InvalidJobActionException(("This job has already been started."));
-        }
+
         return job;
     }
 
@@ -152,7 +148,10 @@ public class JobServiceImpl implements JobService {
         // Job must be AWAITING_APPROVAL
         if(isJobAwaitingApproval(job)) {
             job.setJobStatus(JobStatus.COMPLETED);
-            jobActionService.logApprovalAction(job, user, approvedAt);
+            storeJob(user.getCompany().getId(), job);
+
+            JobAction approveAction = jobActionService.logApprovalAction(job, user, approvedAt);
+            jobActionService.saveJobAction(approveAction);
         }
         return job;
     }
@@ -163,14 +162,15 @@ public class JobServiceImpl implements JobService {
 
         if(isJobAwaitingApproval(job)) {
             // leave the job status as AWAITING_APPROVAL
-            jobActionService.logDenialAction(job, user, deniedAt);
+            JobAction denyAction = jobActionService.logDenialAction(job, user, deniedAt);
+            jobActionService.saveJobAction(denyAction);
         }
 
         return job;
     }
 
     @Override
-    public Job markJobAsFinished(Job job, User user, LocalDateTime stopAt) throws InvalidJobStatusException {
+    public Job markJobAsFinished(Job job, User user, LocalDateTime finishedAt) throws InvalidJobStatusException {
         // Employee marks job as complete. This puts the job in the AWAITING_APPROVAL status
         List<JobAction> jobActions = job.getJobActions();
 
@@ -194,8 +194,10 @@ public class JobServiceImpl implements JobService {
         }
         else if(numberOfEmployeesOnJob(jobActions) == 1) {
             job.setJobStatus(JobStatus.AWAITING_APPROVAL);
+            storeJob(user.getCompany().getId(), job);
         }
-        job.getJobActions().add(new JobAction(stopAt, Action.FINISH, job, user));
+        JobAction finishAction = jobActionService.logFinishAction(job, user, finishedAt);
+        jobActionService.saveJobAction(finishAction);
         // If yes,
         // 2. Are there any other users on this job?
         // If yes, job stays active
@@ -234,6 +236,7 @@ public class JobServiceImpl implements JobService {
         }
         else if(numberOfEmployeesOnJob(jobActions) == 1) {
             job.setJobStatus(JobStatus.PAUSED);
+            storeJob(user.getCompany().getId(), job);
 
             JobAction jobAction = jobActionService.logPauseAction(job, user, pauseAt);
             jobActionService.saveJobAction(jobAction);
@@ -247,6 +250,7 @@ public class JobServiceImpl implements JobService {
         // If job is paused, we can resume
         if(isJobPaused(job)) {
             job.setJobStatus(JobStatus.ACTIVE);
+            storeJob(user.getCompany().getId(), job);
 
             JobAction jobAction = jobActionService.logResumeAction(job, user, resumeAt);
             jobActionService.saveJobAction(jobAction);
@@ -263,33 +267,25 @@ public class JobServiceImpl implements JobService {
     public Job cancelJob(Job job, User user, LocalDateTime cancelAt) throws InvalidJobStatusException {
         // ONLY ADMIN OR MANAGER CAN CANCEL JOB
         // Job can be in any state to be cancelled
-        job.setJobStatus(JobStatus.CANCELLED);
 
         // The the employees that are active on this job, then send a PAUSE action
         // any actions on the job must be stopped (paused)
+        List<User> assignedEmployees = job.getAssignedEmployees();
 
+        // Pause this employee's progress on this job
+        // Need to assign some employees to this job
+        assignedEmployees.forEach(employee -> {
+            logger.info("Cancelling job for employees assigned: " + employee.getUserName());
+            jobActionService.saveJobAction(jobActionService.logPauseAction(job, user, cancelAt));
+        });
 
-        jobActionService.logCancelAction(job, user, cancelAt);
+        JobAction cancelAction = jobActionService.logCancelAction(job, user, cancelAt);
+        jobActionService.saveJobAction(cancelAction);
 
+        job.setJobStatus(JobStatus.CANCELLED);
+        storeJob(user.getCompany().getId(), job);
 
         return job;
-    }
-
-    @Override
-    public Job addEmployeeToJob(Job job, User user, LocalDateTime startAt) {
-        // Add employee to job.
-        // If job is currently pending, mark job as active
-        return null;
-    }
-
-    @Override
-    public Job removeEmployeeFromJob(Job job, User user, LocalDateTime stopAt) {
-        // Remove employee from job.
-        // If job is active, and there are no other employees working the job
-        // set the job status to paused
-
-        // If other users are working the job, keep status as active
-        return null;
     }
 
     @Override
@@ -380,6 +376,11 @@ public class JobServiceImpl implements JobService {
 
         job.setCompany(company);
         return jobRepository.save(job);
+    }
+
+    @Override
+    public Job storeJobStatus(Job job) {
+        return null;
     }
 
     private List<JobItemResponse> mapJobListToResponseList(Long companyId, List<Job> jobs) {
@@ -473,14 +474,6 @@ public class JobServiceImpl implements JobService {
     }
 
     public boolean isJobPaused(Job job) {
-//        List<JobAction> filteredActions = new ArrayList<>();
-//        jobActions.sort(Comparator.comparing(JobAction::getJobActionAt));
-//        jobActions.forEach(jobAction -> logger.info("action at: " + jobAction.getJobActionAt()));
-//
-//        JobAction lastAction = jobActions.get(jobActions.size()-1);
-//        // If the last action is RESUME, it can be PAUSED
-//        if(lastAction.getAction().equals(Action.RESUME)) return false;
-
         return job.getJobStatus().equals(JobStatus.PAUSED);
     }
 
@@ -493,19 +486,13 @@ public class JobServiceImpl implements JobService {
     }
 
     // Not sure if this should be the way to do this.
-    public boolean hasEmployeeStartedJob(List<JobAction> jobActions, Long userId) {
+    public boolean hasEmployeeStartedJob(Job job, User user) {
+        List<User> assignedEmployees = job.getAssignedEmployees();
 
-        logger.info("jobActions size: " + jobActions.size());
-        if(jobActions.size() == 0) return false;
+        return job.getJobActions().stream()
+                .filter(jobAction -> jobAction.getAction().equals(Action.START))
+                .anyMatch(jobAction -> assignedEmployees.contains(jobAction.getUser()));
 
-        return jobActions.stream()
-                .anyMatch(jobAction -> {
-                    logger.info("UserID: " + jobAction.getUser().getId());
-                    if(jobAction.getAction().equals(Action.START)) {
-                        return jobAction.getUser().getId().equals(userId);
-                    }
-                    return false;
-                });
     }
 
     public int numberOfEmployeesOnJob(List<JobAction> jobActions) {
@@ -517,7 +504,6 @@ public class JobServiceImpl implements JobService {
     }
 
     public List<JobAction[]> filterJobActionByEmployee(User user, List<JobAction[]> jobTimeBlocks) {
-
 
         return jobTimeBlocks.stream()
                 .filter(action -> action[0].getUser().equals(user))

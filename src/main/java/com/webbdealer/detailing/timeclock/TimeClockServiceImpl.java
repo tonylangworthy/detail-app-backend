@@ -44,8 +44,8 @@ public class TimeClockServiceImpl implements TimeClockService {
 
     @Override
     public void punchTimeClock(Long userId, TimeClockRequest timeClockRequest) {
-        TimezoneConverter timezoneConverter
-                = new TimezoneConverter.TimezoneConverterBuilder("America/Chicago").build();
+//        TimezoneConverter timezoneConverter
+//                = new TimezoneConverter.TimezoneConverterBuilder("America/Chicago").build();
         User user = userRepository.getOne(userId);
         ClockedReason clockedReason = clockedReasonRepository.getOne(timeClockRequest.getClockedReasonId());
 
@@ -54,21 +54,12 @@ public class TimeClockServiceImpl implements TimeClockService {
         timeClock.setClockedReason(clockedReason);
 
         LocalDateTime clockedAt = LocalDateTime.of(timeClockRequest.getClockedAtDate(), timeClockRequest.getClockedAtTime());
-        timeClock.setClockedAt(timezoneConverter.fromLocalDateTimeToUtc(clockedAt));
+//        timeClock.setClockedAt(timezoneConverter.fromLocalDateTimeToUtc(clockedAt));
+        timeClock.setClockedAt(clockedAt);
 
         timeClock.setClockedStatus(timeClockRequest.getClockedStatus());
         TimeClock newClockedTime = timeClockRepository.save(timeClock);
         logger.info(newClockedTime.toString());
-    }
-
-    @Override
-    public void clockInAt(TimeClockRequest timeClockRequest) {
-
-    }
-
-    @Override
-    public void clockOutAt(TimeClockRequest timeClockRequest) {
-
     }
 
     @Override
@@ -77,7 +68,7 @@ public class TimeClockServiceImpl implements TimeClockService {
         List<TimeClock> employeeTime = timeClockRepository.findByUserIdAndClockedDate(userId, day);
 
         List<LocalTime> user1TimeList = employeeTime.stream()
-                .map(timeClock -> timeClock.getClockedAt().toLocalDateTime().toLocalTime())
+                .map(timeClock -> timeClock.getClockedAt().toLocalTime())
                 .collect(Collectors.toList());
 
         ListIterator<TimeClock> listIterator = employeeTime.listIterator();
@@ -96,10 +87,10 @@ public class TimeClockServiceImpl implements TimeClockService {
                 Optional<LocalTime> optionalClockedOutAt = Optional.empty();
 
                 if(timeClockIn.getClockedStatus().equals(ClockedStatus.IN)) {
-                    optionalClockedInAt = Optional.of(timeClockIn.getClockedAt().toLocalDateTime().toLocalTime());
+                    optionalClockedInAt = Optional.of(timeClockIn.getClockedAt().toLocalTime());
                 }
                 if(timeClockOut.getClockedStatus().equals(ClockedStatus.OUT)) {
-                    optionalClockedOutAt = Optional.of(timeClockOut.getClockedAt().toLocalDateTime().toLocalTime());
+                    optionalClockedOutAt = Optional.of(timeClockOut.getClockedAt().toLocalTime());
                 }
 
                 if(optionalClockedInAt.isPresent() && optionalClockedOutAt.isPresent()) {
@@ -135,14 +126,14 @@ public class TimeClockServiceImpl implements TimeClockService {
 
     @Override
     public List<ClockedEmployeeStatusResponse> listClockedInEmployees() {
-        List<TimeClock> clockedIn = timeClockRepository.findByClockedStatus(ClockedStatus.IN);
+        List<TimeClock> clockedIn = timeClockRepository.findByClockedAtDate(LocalDate.now());
         return buildEmployeeStatusList(clockedIn);
     }
 
     @Override
     public List<ClockedEmployeeStatusResponse> listClockedOutEmployees() {
 
-        List<TimeClock> clockedOut = timeClockRepository.findByClockedStatus(ClockedStatus.OUT);
+        List<TimeClock> clockedOut = timeClockRepository.findByClockedAtDate(LocalDate.now());
         return buildEmployeeStatusList(clockedOut);
     }
 
@@ -201,11 +192,11 @@ public class TimeClockServiceImpl implements TimeClockService {
     }
 
     private ClockedEmployeeStatusResponse mapTimeClockToClockedEmployee(TimeClock timeClock) {
-        TimezoneConverter timezoneConverter
-                = new TimezoneConverter.TimezoneConverterBuilder("America/Chicago").build();
+//        TimezoneConverter timezoneConverter
+//                = new TimezoneConverter.TimezoneConverterBuilder("America/Chicago").build();
         ClockedEmployeeStatusResponse clockedEmployee = new ClockedEmployeeStatusResponse();
         clockedEmployee.setId(timeClock.getId());
-        clockedEmployee.setClockedAt(timezoneConverter.fromUtcToLocalDateTime(timeClock.getClockedAt()));
+        clockedEmployee.setClockedAt(timeClock.getClockedAt());
         clockedEmployee.setClockedReason(timeClock.getClockedReason().getName());
         clockedEmployee.setClockedStatus(timeClock.getClockedStatus());
         clockedEmployee.setEmployeeNote(timeClock.getEmployeeNote());

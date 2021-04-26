@@ -124,28 +124,28 @@ public class JobServiceImplIntegrationTests {
     }
 
     @Test
-    public void startJob_UserAlreadyAssigned_InvalidJobActionException_Test() {
+    public void canStartJob_AssertFalse_Test() {
         List<JobAction> jobActionList = new ArrayList<>();
         jobActionList.add(new JobAction(LocalDateTime.of(yesterday, yesterdayStartTime), Action.START, job1, user1));
         job1.setJobActions(jobActionList);
+        job1.setJobStatus(JobStatus.ACTIVE);
 
-        assertThrows(InvalidJobActionException.class, () -> {
-            jobService.startJob(job1, user1, LocalDateTime.of(2021, 03, 30, 8, 30, 0));
-        });
+        fail();
+//        assertFalse(jobService.canStartJob(job1, user1, LocalDateTime.of(2021, 03, 30, 8, 30, 0)));
     }
 
     @Test
-    public void startJob_JobStatusActive_Test() {
-
-        // If job is ACTIVE, use the addEmployeeToJob method instead
+    public void canStartJob_AssertTrue_Test() {
         List<JobAction> jobActionList = new ArrayList<>();
-        jobActionList.add(new JobAction(LocalDateTime.of(yesterday, yesterdayStartTime), Action.START, job1, user2));
+        jobActionList.add(new JobAction(LocalDateTime.of(yesterday, yesterdayStartTime), Action.START, job1, user1));
         job1.setJobActions(jobActionList);
+        job1.setJobStatus(JobStatus.PENDING);
 
-        Job updatedJob = jobService.startJob(job1, user1, LocalDateTime.of(2021, 3, 31, 6, 30, 0));
-
-        assertEquals(JobStatus.ACTIVE, updatedJob.getJobStatus());
+        fail();
+//        assertTrue(jobService.canStartJob(job1, user1, LocalDateTime.of(2021, 03, 30, 8, 30, 0)));
     }
+
+
 
     @Test
     public void numberOfEmployeesOnJob_Equals2_Test() {
@@ -282,6 +282,34 @@ public class JobServiceImplIntegrationTests {
         Job updatedJob = jobService.cancelJob(job1, user1, LocalDateTime.of(2021, 3, 31, 6, 30, 0));
 
         assertEquals(JobStatus.CANCELLED, updatedJob.getJobStatus());
+    }
+
+    @Test
+    public void hasEmployeeStartedJob_AssertFalse_Test() {
+        JobAction yesterdayStartAction = new JobAction(LocalDateTime.of(yesterday, yesterdayStartTime), Action.START, job1, user1);
+        JobAction yesterdayPauseAction = new JobAction(LocalDateTime.of(yesterday, yesterdayPauseTime), Action.PAUSE, job1, user1);
+        JobAction todayResumeAction = new JobAction(LocalDateTime.of(today, todayResumeTime), Action.RESUME, job1, user1);
+        JobAction todayFinishAction = new JobAction(LocalDateTime.of(today, todayFinishTime), Action.FINISH, job1, user1);
+        JobAction todayDenyAction = new JobAction(LocalDateTime.of(today, todayDenyTime), Action.DENY, job1, user3);
+        JobAction todayApproveAction = new JobAction(LocalDateTime.of(today, todayApprovalTime), Action.APPROVE, job1, user3);
+
+        boolean hasEmployeeStartedJob = jobService.hasEmployeeStartedJob(job1, user3);
+
+        assertFalse(hasEmployeeStartedJob);
+    }
+
+    @Test
+    public void hasEmployeeStartedJob_AssertTrue_Test() {
+        JobAction yesterdayStartAction = new JobAction(LocalDateTime.of(yesterday, yesterdayStartTime), Action.START, job1, user1);
+        JobAction yesterdayPauseAction = new JobAction(LocalDateTime.of(yesterday, yesterdayPauseTime), Action.PAUSE, job1, user1);
+        JobAction todayResumeAction = new JobAction(LocalDateTime.of(today, todayResumeTime), Action.RESUME, job1, user1);
+        JobAction todayFinishAction = new JobAction(LocalDateTime.of(today, todayFinishTime), Action.FINISH, job1, user1);
+        JobAction todayDenyAction = new JobAction(LocalDateTime.of(today, todayDenyTime), Action.DENY, job1, user3);
+        JobAction todayApproveAction = new JobAction(LocalDateTime.of(today, todayApprovalTime), Action.APPROVE, job1, user3);
+
+        boolean hasEmployeeStartedJob = jobService.hasEmployeeStartedJob(job1, user1);
+
+        assertFalse(hasEmployeeStartedJob);
     }
 
     @Test
