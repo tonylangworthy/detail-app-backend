@@ -27,6 +27,7 @@ public class Company extends BaseEntity implements Serializable {
         this.city = builder.city;
         this.state = builder.state;
         this.zip = builder.zip;
+        this.timezone = builder.timezone;
         this.email = builder.email;
         this.phone = builder.phone;
         this.receiveTexts = builder.receiveTexts;
@@ -53,6 +54,9 @@ public class Company extends BaseEntity implements Serializable {
 
     @Column(name = "zip")
     private String zip;
+
+    @Column(name = "timezone")
+    private String timezone;
 
     @Column(name = "email")
     private String email;
@@ -110,6 +114,8 @@ public class Company extends BaseEntity implements Serializable {
         return zip;
     }
 
+    public String getTimezone() { return timezone; }
+
     public String getEmail() { return email; }
 
     public String getPhone() {
@@ -166,12 +172,12 @@ public class Company extends BaseEntity implements Serializable {
         if (o == null || getClass() != o.getClass()) return false;
         if (!super.equals(o)) return false;
         Company company = (Company) o;
-        return receiveTexts == company.receiveTexts && Objects.equals(name, company.name) && Objects.equals(address1, company.address1) && Objects.equals(address2, company.address2) && Objects.equals(city, company.city) && Objects.equals(state, company.state) && Objects.equals(zip, company.zip) && Objects.equals(email, company.email) && Objects.equals(phone, company.phone) && Objects.equals(website, company.website) && Objects.equals(userEntities, company.userEntities);
+        return receiveTexts == company.receiveTexts && Objects.equals(name, company.name) && Objects.equals(address1, company.address1) && Objects.equals(address2, company.address2) && Objects.equals(city, company.city) && Objects.equals(state, company.state) && Objects.equals(zip, company.zip) && Objects.equals(timezone, company.timezone) && Objects.equals(email, company.email) && Objects.equals(phone, company.phone) && Objects.equals(website, company.website) && Objects.equals(userEntities, company.userEntities) && Objects.equals(customers, company.customers) && Objects.equals(reconditioningServices, company.reconditioningServices) && Objects.equals(vehicles, company.vehicles) && Objects.equals(jobs, company.jobs);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), name, address1, address2, city, state, zip, email, phone, receiveTexts, website, userEntities);
+        return Objects.hash(super.hashCode(), name, address1, address2, city, state, zip, timezone, email, phone, receiveTexts, website, userEntities, customers, reconditioningServices, vehicles, jobs);
     }
 
     @Override
@@ -183,6 +189,7 @@ public class Company extends BaseEntity implements Serializable {
                 ", city='" + city + '\'' +
                 ", state='" + state + '\'' +
                 ", zip='" + zip + '\'' +
+                ", timezone='" + timezone + '\'' +
                 ", email='" + email + '\'' +
                 ", phone='" + phone + '\'' +
                 ", receiveTexts=" + receiveTexts +
@@ -199,6 +206,7 @@ public class Company extends BaseEntity implements Serializable {
         private String city;
         private String state;
         private String zip;
+        private String timezone;
         private String email;
         private String phone;
         private boolean receiveTexts;
@@ -233,6 +241,11 @@ public class Company extends BaseEntity implements Serializable {
 
         public CompanyBuilder zip(String zip) {
             this.zip = zip;
+            return this;
+        }
+
+        public CompanyBuilder timezone(String timezone) {
+            this.timezone = timezone;
             return this;
         }
 
