@@ -1,15 +1,23 @@
 package com.webbdealer.detailing.timeclock.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.webbdealer.detailing.shared.UserTimeZoneDeserializer;
+import com.webbdealer.detailing.shared.UserTimeZoneSerializer;
 import com.webbdealer.detailing.timeclock.dao.ClockedStatus;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.Objects;
 
 public class ClockedEmployeeStatusResponse implements Serializable {
 
     private Long id;
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "MM/dd/yyyy hh:mm a")
+    @JsonSerialize(using = UserTimeZoneSerializer.class)
     private LocalDateTime clockedAt;
 
     private ClockedStatus clockedStatus;

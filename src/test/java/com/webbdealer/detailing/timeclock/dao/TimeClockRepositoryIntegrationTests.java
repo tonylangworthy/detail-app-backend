@@ -1,27 +1,18 @@
 package com.webbdealer.detailing.timeclock.dao;
 
-import com.webbdealer.detailing.DetailingAppApplication;
 import com.webbdealer.detailing.employee.dao.User;
 import com.webbdealer.detailing.employee.dao.UserRepository;
-import com.webbdealer.detailing.shared.TimezoneConverter;
 import com.webbdealer.detailing.timeclock.TimeClockService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
 
 import javax.transaction.Transactional;
 import java.time.*;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalUnit;
-import java.util.Iterator;
 import java.util.List;
-import java.util.ListIterator;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @SpringBootTest
 @ActiveProfiles("test")
@@ -59,9 +50,6 @@ public class TimeClockRepositoryIntegrationTests {
         Optional<User> optionalUser2 = userRepository.findById(3L);
         User user2 = optionalUser2.get();
 
-        TimezoneConverter timezoneConverter
-                = new TimezoneConverter.TimezoneConverterBuilder("America/Chicago").build();
-
         Optional<ClockedReason> optionalClockedIn = clockedReasonRepository.findById(1L);
         ClockedReason clockedIn = optionalClockedIn.get();
 
@@ -75,7 +63,7 @@ public class TimeClockRepositoryIntegrationTests {
         ClockedReason backFromLunch = optionalBackFromLunch.get();
 
         TimeClock mondayIn = new TimeClock(
-                timezoneConverter.fromLocalDateTimeToUtc(LocalDateTime.parse("03/08/2021 08:02 AM", formatter)),
+                LocalDateTime.parse("03/08/2021 08:02 AM", formatter),
                 clockedIn,
                 "Running a little late",
                 ClockedStatus.IN,
@@ -84,7 +72,7 @@ public class TimeClockRepositoryIntegrationTests {
 //        timeClockRepository.save(mondayIn);
 
         TimeClock mondayOutLunch = new TimeClock(
-                timezoneConverter.fromLocalDateTimeToUtc(LocalDateTime.parse("03/08/2021 11:33 AM", formatter)),
+                LocalDateTime.parse("03/08/2021 11:33 AM", formatter),
                 outToLunch,
                 "",
                 ClockedStatus.OUT,
@@ -93,7 +81,7 @@ public class TimeClockRepositoryIntegrationTests {
 //        timeClockRepository.save(mondayOutLunch);
 
         TimeClock mondayInLunch = new TimeClock(
-                timezoneConverter.fromLocalDateTimeToUtc(LocalDateTime.parse("03/08/2021 12:07 PM", formatter)),
+                LocalDateTime.parse("03/08/2021 12:07 PM", formatter),
                 backFromLunch,
                 "",
                 ClockedStatus.IN,
@@ -102,7 +90,7 @@ public class TimeClockRepositoryIntegrationTests {
 //        timeClockRepository.save(mondayInLunch);
 
         TimeClock mondayOut = new TimeClock(
-                timezoneConverter.fromLocalDateTimeToUtc(LocalDateTime.parse("03/08/2021 05:04 PM", formatter)),
+                LocalDateTime.parse("03/08/2021 05:04 PM", formatter),
                 clockedOut,
                 "",
                 ClockedStatus.OUT,
@@ -111,7 +99,7 @@ public class TimeClockRepositoryIntegrationTests {
 //        timeClockRepository.save(mondayOut);
 
         TimeClock mondayIn1 = new TimeClock(
-                timezoneConverter.fromLocalDateTimeToUtc(LocalDateTime.parse("03/08/2021 06:10 AM", formatter)),
+                LocalDateTime.parse("03/08/2021 06:10 AM", formatter),
                 clockedIn,
                 "My truck is a piece of crap",
                 ClockedStatus.IN,
@@ -120,7 +108,7 @@ public class TimeClockRepositoryIntegrationTests {
 //        timeClockRepository.save(mondayIn1);
 
         TimeClock mondayOutLunch1 = new TimeClock(
-                timezoneConverter.fromLocalDateTimeToUtc(LocalDateTime.parse("03/08/2021 11:24 AM", formatter)),
+                LocalDateTime.parse("03/08/2021 11:24 AM", formatter),
                 outToLunch,
                 "",
                 ClockedStatus.OUT,
@@ -129,7 +117,7 @@ public class TimeClockRepositoryIntegrationTests {
 //        timeClockRepository.save(mondayOutLunch1);
 
         TimeClock mondayInLunch1= new TimeClock(
-                timezoneConverter.fromLocalDateTimeToUtc(LocalDateTime.parse("03/08/2021 11:58 PM", formatter)),
+                LocalDateTime.parse("03/08/2021 11:58 PM", formatter),
                 backFromLunch,
                 "",
                 ClockedStatus.IN,
@@ -138,7 +126,7 @@ public class TimeClockRepositoryIntegrationTests {
 //        timeClockRepository.save(mondayInLunch1);
 
         TimeClock mondayOut1 = new TimeClock(
-                timezoneConverter.fromLocalDateTimeToUtc(LocalDateTime.parse("03/08/2021 05:58 PM", formatter)),
+                LocalDateTime.parse("03/08/2021 05:58 PM", formatter),
                 clockedOut,
                 "",
                 ClockedStatus.OUT,

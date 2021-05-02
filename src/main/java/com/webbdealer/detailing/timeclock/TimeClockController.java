@@ -13,6 +13,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 
 @RestController
 @RequestMapping("/time-clock")
@@ -45,5 +46,7 @@ public class TimeClockController {
     @GetMapping("/clocked-in")
     public ResponseEntity<?> showClockedInEmployees() {
         return ResponseEntity.ok(timeClockService.listClockedInEmployees());
+//        return ResponseEntity.ok(ZonedDateTime.now());
+//        return ResponseEntity.ok(LocalDateTime.now());
     }
 }

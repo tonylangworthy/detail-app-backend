@@ -13,7 +13,6 @@ import com.webbdealer.detailing.job.dto.JobItemResponse;
 import com.webbdealer.detailing.job.dto.JobDetailsResponse;
 import com.webbdealer.detailing.recondition.ReconditionService;
 import com.webbdealer.detailing.recondition.dao.Recondition;
-import com.webbdealer.detailing.shared.TimezoneConverter;
 import com.webbdealer.detailing.vehicle.VehicleLookupService;
 import com.webbdealer.detailing.vehicle.VehicleService;
 import com.webbdealer.detailing.vehicle.dao.Vehicle;
@@ -31,7 +30,6 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 @Service
@@ -429,8 +427,6 @@ public class JobServiceImpl implements JobService {
     }
 
     private JobDetailsResponse mapJobToJobDetailsResponse(Long companyId, Job job) {
-        TimezoneConverter timezoneConverter = new TimezoneConverter.TimezoneConverterBuilder("America/Chicago").build();
-
         JobDetailsResponse jobDetailsResponse = new JobDetailsResponse();
 
 //        CustomerResponse customerResponse = customerService.mapCustomerToResponse(job.getCustomer());

@@ -2,8 +2,6 @@ package com.webbdealer.detailing.timeclock;
 
 import com.webbdealer.detailing.employee.dao.User;
 import com.webbdealer.detailing.employee.dao.UserRepository;
-import com.webbdealer.detailing.employee.dto.EmployeeResponse;
-import com.webbdealer.detailing.shared.TimezoneConverter;
 import com.webbdealer.detailing.timeclock.dao.*;
 import com.webbdealer.detailing.timeclock.dto.ClockedEmployeeStatusResponse;
 import com.webbdealer.detailing.timeclock.dto.TimeClockRequest;
@@ -49,15 +47,18 @@ public class TimeClockServiceImpl implements TimeClockService {
         User user = userRepository.getOne(userId);
         ClockedReason clockedReason = clockedReasonRepository.getOne(timeClockRequest.getClockedReasonId());
 
+        logger.info("timeclock request: " + timeClockRequest.toString());
+
         TimeClock timeClock = new TimeClock();
         timeClock.setUser(user);
         timeClock.setClockedReason(clockedReason);
 
-        LocalDateTime clockedAt = LocalDateTime.of(timeClockRequest.getClockedAtDate(), timeClockRequest.getClockedAtTime());
-//        timeClock.setClockedAt(timezoneConverter.fromLocalDateTimeToUtc(clockedAt));
+        LocalDateTime clockedAt = timeClockRequest.getClockedAt();
         timeClock.setClockedAt(clockedAt);
 
         timeClock.setClockedStatus(timeClockRequest.getClockedStatus());
+        timeClock.setEmployeeNote(timeClockRequest.getEmployeeNote());
+        logger.info("timeclock before save: " + timeClock.toString());
         TimeClock newClockedTime = timeClockRepository.save(timeClock);
         logger.info(newClockedTime.toString());
     }
@@ -126,7 +127,9 @@ public class TimeClockServiceImpl implements TimeClockService {
 
     @Override
     public List<ClockedEmployeeStatusResponse> listClockedInEmployees() {
+        // date must be today, and last entry is IN
         List<TimeClock> clockedIn = timeClockRepository.findByClockedAtDate(LocalDate.now());
+        logger.info(LocalDateTime.now().toString());
         return buildEmployeeStatusList(clockedIn);
     }
 
