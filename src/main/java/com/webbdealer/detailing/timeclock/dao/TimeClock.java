@@ -1,6 +1,7 @@
 package com.webbdealer.detailing.timeclock.dao;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.webbdealer.detailing.company.dao.Company;
 import com.webbdealer.detailing.employee.dao.User;
 
 import javax.persistence.*;
@@ -34,6 +35,10 @@ public class TimeClock {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
+    @ManyToOne
+    @JoinColumn(name = "company_id", nullable = false)
+    private Company company;
 
     public TimeClock() {}
 
@@ -91,7 +96,6 @@ public class TimeClock {
         this.clockedStatus = clockedStatus;
     }
 
-
     public User getUser() {
         return user;
     }
@@ -100,17 +104,25 @@ public class TimeClock {
         this.user = user;
     }
 
+    public Company getCompany() {
+        return company;
+    }
+
+    public void setCompany(Company company) {
+        this.company = company;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         TimeClock timeClock = (TimeClock) o;
-        return Objects.equals(id, timeClock.id) && Objects.equals(clockedAt, timeClock.clockedAt) && Objects.equals(clockedReason, timeClock.clockedReason) && Objects.equals(employeeNote, timeClock.employeeNote) && clockedStatus == timeClock.clockedStatus && Objects.equals(user, timeClock.user);
+        return Objects.equals(id, timeClock.id) && Objects.equals(clockedAt, timeClock.clockedAt) && Objects.equals(clockedReason, timeClock.clockedReason) && Objects.equals(employeeNote, timeClock.employeeNote) && clockedStatus == timeClock.clockedStatus && Objects.equals(user, timeClock.user) && Objects.equals(company, timeClock.company);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, clockedAt, clockedReason, employeeNote, clockedStatus, user);
+        return Objects.hash(id, clockedAt, clockedReason, employeeNote, clockedStatus, user, company);
     }
 
     @Override
@@ -118,8 +130,11 @@ public class TimeClock {
         return "TimeClock{" +
                 "id=" + id +
                 ", clockedAt=" + clockedAt +
+                ", clockedReason=" + clockedReason +
                 ", employeeNote='" + employeeNote + '\'' +
                 ", clockedStatus=" + clockedStatus +
+                ", user=" + user +
+                ", company=" + company +
                 '}';
     }
 }

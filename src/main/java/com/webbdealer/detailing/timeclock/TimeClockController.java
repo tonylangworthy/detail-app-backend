@@ -30,14 +30,8 @@ public class TimeClockController {
 
     @PostMapping("")
     public ResponseEntity<?> punchTimeClock(@RequestBody TimeClockRequest timeClockRequest) {
-        SecurityContext context = SecurityContextHolder.getContext();
-        Authentication auth = context.getAuthentication();
 
-        JwtClaim userDetails = (JwtClaim) auth.getPrincipal();
-
-
-
-        timeClockService.punchTimeClock(userDetails.getUserId(), timeClockRequest);
+        timeClockService.punchTimeClock(userDetails().getUserId(), timeClockRequest);
 
         return ResponseEntity.ok("Time clock punched!");
     }
@@ -45,8 +39,15 @@ public class TimeClockController {
 
     @GetMapping("/clocked-in")
     public ResponseEntity<?> showClockedInEmployees() {
-        return ResponseEntity.ok(timeClockService.listClockedInEmployees());
+        return ResponseEntity.ok(timeClockService.listClockedInEmployees(userDetails().getCompanyId()));
 //        return ResponseEntity.ok(ZonedDateTime.now());
 //        return ResponseEntity.ok(LocalDateTime.now());
+    }
+
+    private JwtClaim userDetails() {
+        SecurityContext context = SecurityContextHolder.getContext();
+        Authentication auth = context.getAuthentication();
+
+        return (JwtClaim) auth.getPrincipal();
     }
 }

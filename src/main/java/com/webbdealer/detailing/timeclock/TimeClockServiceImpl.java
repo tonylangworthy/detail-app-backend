@@ -126,17 +126,23 @@ public class TimeClockServiceImpl implements TimeClockService {
     }
 
     @Override
-    public List<ClockedEmployeeStatusResponse> listClockedInEmployees() {
+    public List<ClockedEmployeeStatusResponse> listClockedInEmployees(Long companyId) {
         // date must be today, and last entry is IN
-        List<TimeClock> clockedIn = timeClockRepository.findByClockedAtDate(LocalDate.now());
-        logger.info(LocalDateTime.now().toString());
-        return buildEmployeeStatusList(clockedIn);
+
+        // zone utc time now
+        ZonedDateTime utcZonedDateTime = ZonedDateTime.now(ZoneId.of("UTC"));
+
+        ZoneId companyZoneId = ZoneId.of("America/Los_Angeles");
+        ZonedDateTime companyZonedDateTime = utcZonedDateTime.withZoneSameInstant(companyZoneId);
+        System.out.println("zoned date: " + companyZonedDateTime);
+        List<TimeClock> clockedToday = timeClockRepository.findByClockedAtDate(companyZonedDateTime.toLocalDate(), companyId);
+        return buildEmployeeStatusList(clockedToday);
     }
 
     @Override
-    public List<ClockedEmployeeStatusResponse> listClockedOutEmployees() {
+    public List<ClockedEmployeeStatusResponse> listClockedOutEmployees(Long companyId) {
 
-        List<TimeClock> clockedOut = timeClockRepository.findByClockedAtDate(LocalDate.now());
+        List<TimeClock> clockedOut = timeClockRepository.findByClockedAtDate(LocalDate.now(), companyId);
         return buildEmployeeStatusList(clockedOut);
     }
 

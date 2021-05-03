@@ -26,7 +26,7 @@ import java.time.temporal.TemporalAccessor;
 import java.util.Locale;
 import java.util.Optional;
 
-public class UserTimeZoneDeserializer extends JsonDeserializer<ZonedDateTime> {
+public class UserTimeZoneDeserializer extends JsonDeserializer<LocalDateTime> {
 
     private CompanyRepository companyRepository;
 
@@ -36,7 +36,7 @@ public class UserTimeZoneDeserializer extends JsonDeserializer<ZonedDateTime> {
     }
 
     @Override
-    public ZonedDateTime deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JsonProcessingException {
+    public LocalDateTime deserialize(JsonParser p, DeserializationContext ctxt) throws IOException, JsonProcessingException {
 
         if(p.getText().equals("")) {
             return null;
@@ -52,20 +52,14 @@ public class UserTimeZoneDeserializer extends JsonDeserializer<ZonedDateTime> {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy hh:mm a", Locale.ENGLISH);
         LocalDateTime localDateTime = LocalDateTime.parse(p.getText(), formatter);
 
-//        ZonedDateTime zonedDateTime = ZonedDateTime.parse(p.getText(), formatter).withZoneSameLocal(ZoneId.of(companyTimezone));
-        System.out.println("local: " + localDateTime);
+        // add zone information to the submitted date/time
+        ZonedDateTime companyZonedDateTime = ZonedDateTime.of(localDateTime, ZoneId.of(companyTimezone));
+        System.out.println("zoned to company: " + companyZonedDateTime);
 
-        ZonedDateTime zonedDateTime = localDateTime.atZone(ZoneId.of(companyTimezone));
+        // convert company time zone to UTC for storage
+        ZonedDateTime utcZonedDateTime = companyZonedDateTime.withZoneSameInstant(ZoneId.of("UTC"));
+        System.out.println("zoned to utc: " + utcZonedDateTime);
 
-
-        System.out.println("zoned to utc: " + zonedDateTime);
-
-
-
-        System.out.println(p.getText());
-
-//        System.out.println(userDetails.toString());
-
-        return zonedDateTime;
+        return utcZonedDateTime.toLocalDateTime();
     }
 }

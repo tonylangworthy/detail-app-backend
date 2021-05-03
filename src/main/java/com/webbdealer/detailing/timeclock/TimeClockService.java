@@ -1,5 +1,6 @@
 package com.webbdealer.detailing.timeclock;
 
+import com.webbdealer.detailing.company.dao.Company;
 import com.webbdealer.detailing.employee.dao.User;
 import com.webbdealer.detailing.employee.dto.EmployeeResponse;
 import com.webbdealer.detailing.timeclock.dao.TimeClock;
@@ -23,9 +24,9 @@ public interface TimeClockService {
 
     Duration totalHoursWorked(Long userId, TemporalAccessor temporal);
 
-    List<ClockedEmployeeStatusResponse> listClockedInEmployees();
+    List<ClockedEmployeeStatusResponse> listClockedInEmployees(Long companyId);
 
-    List<ClockedEmployeeStatusResponse> listClockedOutEmployees();
+    List<ClockedEmployeeStatusResponse> listClockedOutEmployees(Long companyId);
 
     boolean isEmployeeClockedIn(Long userId);
 

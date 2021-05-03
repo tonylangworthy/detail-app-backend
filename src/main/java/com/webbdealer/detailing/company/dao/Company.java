@@ -6,6 +6,7 @@ import com.webbdealer.detailing.employee.dao.User;
 import com.webbdealer.detailing.job.dao.Job;
 import com.webbdealer.detailing.recondition.dao.Recondition;
 import com.webbdealer.detailing.shared.BaseEntity;
+import com.webbdealer.detailing.timeclock.dao.TimeClock;
 import com.webbdealer.detailing.vehicle.dao.Vehicle;
 
 import javax.persistence.*;
@@ -90,6 +91,10 @@ public class Company extends BaseEntity implements Serializable {
     @JsonManagedReference
     private List<Job> jobs;
 
+    @OneToMany(mappedBy = "company", fetch = FetchType.LAZY)
+    @JsonManagedReference
+    private List<TimeClock> timeClockEntries;
+
     public String getName() {
         return name;
     }
@@ -166,18 +171,26 @@ public class Company extends BaseEntity implements Serializable {
         this.jobs = jobs;
     }
 
+    public List<TimeClock> getTimeClockEntries() {
+        return timeClockEntries;
+    }
+
+    public void setTimeClockEntries(List<TimeClock> timeClockEntries) {
+        this.timeClockEntries = timeClockEntries;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         if (!super.equals(o)) return false;
         Company company = (Company) o;
-        return receiveTexts == company.receiveTexts && Objects.equals(name, company.name) && Objects.equals(address1, company.address1) && Objects.equals(address2, company.address2) && Objects.equals(city, company.city) && Objects.equals(state, company.state) && Objects.equals(zip, company.zip) && Objects.equals(timezone, company.timezone) && Objects.equals(email, company.email) && Objects.equals(phone, company.phone) && Objects.equals(website, company.website) && Objects.equals(userEntities, company.userEntities) && Objects.equals(customers, company.customers) && Objects.equals(reconditioningServices, company.reconditioningServices) && Objects.equals(vehicles, company.vehicles) && Objects.equals(jobs, company.jobs);
+        return receiveTexts == company.receiveTexts && Objects.equals(name, company.name) && Objects.equals(address1, company.address1) && Objects.equals(address2, company.address2) && Objects.equals(city, company.city) && Objects.equals(state, company.state) && Objects.equals(zip, company.zip) && Objects.equals(timezone, company.timezone) && Objects.equals(email, company.email) && Objects.equals(phone, company.phone) && Objects.equals(website, company.website) && Objects.equals(userEntities, company.userEntities) && Objects.equals(customers, company.customers) && Objects.equals(reconditioningServices, company.reconditioningServices) && Objects.equals(vehicles, company.vehicles) && Objects.equals(jobs, company.jobs) && Objects.equals(timeClockEntries, company.timeClockEntries);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), name, address1, address2, city, state, zip, timezone, email, phone, receiveTexts, website, userEntities, customers, reconditioningServices, vehicles, jobs);
+        return Objects.hash(super.hashCode(), name, address1, address2, city, state, zip, timezone, email, phone, receiveTexts, website, userEntities, customers, reconditioningServices, vehicles, jobs, timeClockEntries);
     }
 
     @Override
@@ -195,6 +208,11 @@ public class Company extends BaseEntity implements Serializable {
                 ", receiveTexts=" + receiveTexts +
                 ", website='" + website + '\'' +
                 ", userEntities=" + userEntities +
+                ", customers=" + customers +
+                ", reconditioningServices=" + reconditioningServices +
+                ", vehicles=" + vehicles +
+                ", jobs=" + jobs +
+                ", timeClockEntries=" + timeClockEntries +
                 '}';
     }
 
