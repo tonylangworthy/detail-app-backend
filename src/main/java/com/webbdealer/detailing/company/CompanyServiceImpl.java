@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityNotFoundException;
+import java.time.ZoneId;
 import java.util.Optional;
 
 @Service
@@ -78,6 +79,15 @@ public class CompanyServiceImpl implements CompanyService {
         Company company = companyRepository.getOne(companyId);
         job.setCompany(company);
         return company;
+    }
+
+    @Override
+    public ZoneId companyTimeZone(Long companyId) {
+        Optional<Company> optionalCompany = companyRepository.findById(companyId);
+        Company company = optionalCompany.orElseThrow(
+                () -> new EntityNotFoundException("Company with id of ["+companyId+"] not found!"));
+        String companyTimezone = company.getTimezone();
+        return ZoneId.of(companyTimezone);
     }
 
 

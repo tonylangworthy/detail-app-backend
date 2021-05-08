@@ -1,7 +1,10 @@
 package com.webbdealer.detailing.timeclock;
 
+import com.webbdealer.detailing.company.CompanyService;
+import com.webbdealer.detailing.company.dao.CompanyRepository;
 import com.webbdealer.detailing.employee.dao.User;
 import com.webbdealer.detailing.employee.dao.UserRepository;
+import com.webbdealer.detailing.shared.TimeZoneConverter;
 import com.webbdealer.detailing.timeclock.dao.*;
 import com.webbdealer.detailing.timeclock.dto.ClockedEmployeeStatusResponse;
 import com.webbdealer.detailing.timeclock.dto.TimeClockRequest;
@@ -31,13 +34,17 @@ public class TimeClockServiceImpl implements TimeClockService {
 
     private UserRepository userRepository;
 
+    private CompanyService companyService;
+
     @Autowired
     public TimeClockServiceImpl(TimeClockRepository timeClockRepository,
                                 ClockedReasonRepository clockedReasonRepository,
-                                UserRepository userRepository) {
+                                UserRepository userRepository,
+                                CompanyService companyService) {
         this.timeClockRepository = timeClockRepository;
         this.clockedReasonRepository = clockedReasonRepository;
         this.userRepository = userRepository;
+        this.companyService = companyService;
     }
 
     @Override
@@ -130,12 +137,11 @@ public class TimeClockServiceImpl implements TimeClockService {
         // date must be today, and last entry is IN
 
         // zone utc time now
-        ZonedDateTime utcZonedDateTime = ZonedDateTime.now(ZoneId.of("UTC"));
+        ZoneId companyZoneId = companyService.companyTimeZone(companyId);
+        ZonedDateTime companyDateTimeNow = TimeZoneConverter.companyDateTimeNow(companyZoneId);
 
-        ZoneId companyZoneId = ZoneId.of("America/Los_Angeles");
-        ZonedDateTime companyZonedDateTime = utcZonedDateTime.withZoneSameInstant(companyZoneId);
-        System.out.println("zoned date: " + companyZonedDateTime);
-        List<TimeClock> clockedToday = timeClockRepository.findByClockedAtDate(companyZonedDateTime.toLocalDate(), companyId);
+        System.out.println("zoned date: " + companyDateTimeNow);
+        List<TimeClock> clockedToday = timeClockRepository.findByClockedAtDate(companyDateTimeNow.toLocalDate(), companyId);
         return buildEmployeeStatusList(clockedToday);
     }
 

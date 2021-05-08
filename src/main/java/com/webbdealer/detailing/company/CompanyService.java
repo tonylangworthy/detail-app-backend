@@ -6,6 +6,7 @@ import com.webbdealer.detailing.job.dao.Job;
 import com.webbdealer.detailing.recondition.dao.Recondition;
 import com.webbdealer.detailing.vehicle.dao.Vehicle;
 
+import java.time.ZoneId;
 import java.util.Optional;
 
 public interface CompanyService {
@@ -25,4 +26,6 @@ public interface CompanyService {
     Company attachReconServiceToCompany(Recondition recondition, Long companyId);
 
     Company attachJobToCompany(Job job, Long companyId);
+
+    ZoneId companyTimeZone(Long companyId);
 }
