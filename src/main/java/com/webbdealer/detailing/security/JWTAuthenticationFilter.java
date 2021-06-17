@@ -3,6 +3,7 @@ package com.webbdealer.detailing.security;
 import com.fasterxml.jackson.databind.JsonSerializer;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.webbdealer.detailing.employee.dao.User;
+import com.webbdealer.detailing.security.dto.LoginRequest;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
@@ -18,6 +19,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
+import javax.servlet.ServletInputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -48,13 +50,15 @@ public class JWTAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         logger.info("JWTAuthenticationFilter.attemptAuthentication()");
 
         try {
-            User user = new ObjectMapper().readValue(request.getInputStream(), User.class);
-            logger.info("User from Request Input Stream: "+ user.toString());
+            ServletInputStream inputStream = request.getInputStream();
+//            logger.info(inputStream.readAllBytes().toString());
+            LoginRequest loginRequest = new ObjectMapper().readValue(inputStream, LoginRequest.class);
+            logger.info("User from Request Input Stream: "+ loginRequest.toString());
 
             return authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
-                            user.getEmail(),
-                            user.getPassword(),
+                            loginRequest.getEmail(),
+                            loginRequest.getPassword(),
                             new ArrayList<>()
                     )
             );

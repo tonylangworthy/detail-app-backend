@@ -1,5 +1,6 @@
 package com.webbdealer.detailing.vehicle.dto;
 
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import java.io.Serializable;

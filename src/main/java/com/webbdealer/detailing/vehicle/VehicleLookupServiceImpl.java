@@ -27,6 +27,8 @@ public class VehicleLookupServiceImpl implements VehicleLookupService {
 
         String commaSeparatedIdList = commaSeparatedIdList(idList);
 
+        logger.info("catalog ids: " + commaSeparatedIdList);
+
         final String uri = CATALOG_API_BASE_URL + "/vehicles/"+commaSeparatedIdList;
 
         RestTemplate restTemplate = new RestTemplate();

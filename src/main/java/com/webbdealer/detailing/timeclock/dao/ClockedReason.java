@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.util.List;
 import java.util.Objects;
 
@@ -19,9 +20,12 @@ public class ClockedReason {
     @Column(name = "name")
     private String name;
 
-    @OneToMany(mappedBy = "clockedReason")
-    @JsonIgnore
+    @OneToMany(mappedBy = "clockedReason", fetch = FetchType.LAZY)
+    @JsonManagedReference
     private List<TimeClock> timeClocks;
+
+    public ClockedReason() {
+    }
 
     public Long getId() {
         return id;

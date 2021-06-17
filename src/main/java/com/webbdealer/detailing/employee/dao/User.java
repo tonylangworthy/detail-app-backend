@@ -52,15 +52,17 @@ public class User implements Serializable {
     @Column(name = "pin")
     private String pin;
 
+    @JsonManagedReference(value = "company")
     @ManyToOne
     @JoinColumn(name = "company_id")
-    @JsonIgnore
     private Company company;
 
+    @JsonManagedReference(value = "timeClocks")
     @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
     @JsonIgnore
     private List<TimeClock> timeClocks;
 
+    @JsonManagedReference(value = "roles")
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "users_roles",
@@ -72,11 +74,12 @@ public class User implements Serializable {
 //    @JsonIgnore
 //    private List<Job> jobs;
 
+//    @JsonBackReference(value = "jobActions")
     @OneToMany(mappedBy = "user")
     private List<JobAction> jobActions = new ArrayList<>();
 
+    @JsonManagedReference(value = "jobs")
     @ManyToMany(mappedBy = "assignedEmployees")
-    @JsonIgnore
     List<Job> jobs = new ArrayList<>();
 
     @Column(name = "created_at")

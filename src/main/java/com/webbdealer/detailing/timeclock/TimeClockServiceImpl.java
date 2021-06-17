@@ -206,6 +206,11 @@ public class TimeClockServiceImpl implements TimeClockService {
         return timeClockRepository.findAllByUserId(userId);
     }
 
+    @Override
+    public List<ClockedReason> fetchClockedReasons() {
+        return clockedReasonRepository.findAll();
+    }
+
     private ClockedEmployeeStatusResponse mapTimeClockToClockedEmployee(TimeClock timeClock) {
 //        TimezoneConverter timezoneConverter
 //                = new TimezoneConverter.TimezoneConverterBuilder("America/Chicago").build();

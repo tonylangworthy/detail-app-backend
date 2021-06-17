@@ -12,6 +12,8 @@ import com.webbdealer.detailing.recondition.dto.ReconditionWrapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
@@ -36,14 +38,9 @@ public class ReconditionServiceImpl implements ReconditionService {
     }
 
     @Override
-    public Optional<Recondition> fetchById(Long id) {
-
-        return reconditionRepository.findById(id);
-    }
-
-    @Override
-    public Recondition fetchByIdReference(Long id) {
-        return reconditionRepository.getOne(id);
+    public Recondition fetchById(Long id) {
+        Optional<Recondition> optionalRecondition = reconditionRepository.findById(id);
+        return optionalRecondition.orElseThrow();
     }
 
     @Override
@@ -51,7 +48,7 @@ public class ReconditionServiceImpl implements ReconditionService {
         List<Recondition> reconditionList = new ArrayList<>();
 
         serviceIds.forEach(id -> {
-            Recondition recon = reconditionRepository.getOne(id);
+            Recondition recon = fetchById(id);
             reconditionList.add(recon);
         });
         job.setReconditioningServices(reconditionList);
@@ -59,8 +56,8 @@ public class ReconditionServiceImpl implements ReconditionService {
     }
 
     @Override
-    public List<Recondition> fetchServices(Long companyId) {
-        return reconditionRepository.findAllByCompanyId(companyId);
+    public Page<Recondition> fetchServices(Long companyId, Pageable pageable) {
+        return reconditionRepository.findAllByCompanyId(companyId, pageable);
     }
 
     @Override

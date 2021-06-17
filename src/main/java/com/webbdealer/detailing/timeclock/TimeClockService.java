@@ -3,6 +3,7 @@ package com.webbdealer.detailing.timeclock;
 import com.webbdealer.detailing.company.dao.Company;
 import com.webbdealer.detailing.employee.dao.User;
 import com.webbdealer.detailing.employee.dto.EmployeeResponse;
+import com.webbdealer.detailing.timeclock.dao.ClockedReason;
 import com.webbdealer.detailing.timeclock.dao.TimeClock;
 import com.webbdealer.detailing.timeclock.dto.ClockedEmployeeStatusResponse;
 import com.webbdealer.detailing.timeclock.dto.TimeClockRequest;
@@ -37,4 +38,6 @@ public interface TimeClockService {
     List<TimeClock> fetchTimeClockListByDate(LocalDate date);
 
     List<TimeClock> fetchTimeClockListByEmployee(Long userId);
+
+    List<ClockedReason> fetchClockedReasons();
 }

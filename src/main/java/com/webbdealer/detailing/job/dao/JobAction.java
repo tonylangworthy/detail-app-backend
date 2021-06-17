@@ -1,6 +1,8 @@
 package com.webbdealer.detailing.job.dao;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.webbdealer.detailing.employee.dao.User;
 
 import javax.persistence.*;

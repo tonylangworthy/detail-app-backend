@@ -9,6 +9,9 @@ import com.webbdealer.detailing.vehicle.dto.VehicleResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -48,32 +51,33 @@ public class VehicleServiceImpl implements VehicleService {
     }
 
     @Override
-    public Optional<Vehicle> fetchById(Long id) {
-        return vehicleRepository.findById(id);
+    public Vehicle fetchById(Long id) {
+        Optional<Vehicle> optionalVehicle = vehicleRepository.findById(id);
+        return optionalVehicle.orElseThrow();
     }
 
     @Override
-    public Vehicle fetchByIdReference(Long id) {
-        return vehicleRepository.getOne(id);
-    }
-
-    @Override
-    public List<VehicleResponse> fetchAllVehicles(Long companyId) {
-        List<Vehicle> vehicles = vehicleRepository.findAllByCompanyId(companyId);
+    public Page<VehicleResponse> fetchAllVehicles(Long companyId, Pageable pageable) {
+        Page<Vehicle> vehicles = vehicleRepository.findAllByCompanyId(companyId, pageable);
+        logger.info("vehicle total elements: " + vehicles.getTotalElements());
         List<Long> catalogIds = vehicles.stream().map(Vehicle::getCatalogId).collect(Collectors.toList());
 
         ResponseEntity<CatalogVehicleResponse[]> apiResponse = lookupService.lookupByCatalogIds(catalogIds);
 
-        return convertApiResponseToVehicle(vehicles, apiResponse);
+        List<VehicleResponse> vehicleResponseList = convertApiResponseToVehicle(vehicles, apiResponse);
+
+        return new PageImpl<>(vehicleResponseList, pageable, vehicles.getTotalElements());
     }
 
     @Override
-    public List<VehicleResponse> fetchVehiclesByCatalogIdList(Long companyId, List<Long> catalogIds) {
-        List<Vehicle> vehicles = vehicleRepository.findByCompanyIdAndCatalogIdIn(companyId, catalogIds);
+    public Page<VehicleResponse> fetchVehiclesByCatalogIdList(Long companyId, List<Long> catalogIds, Pageable pageable) {
+        Page<Vehicle> vehicles = vehicleRepository.findByCompanyIdAndCatalogIdIn(companyId, catalogIds, pageable);
 
         ResponseEntity<CatalogVehicleResponse[]> apiResponse = lookupService.lookupByCatalogIds(catalogIds);
+        List<VehicleResponse> vehicleResponseList = convertApiResponseToVehicle(vehicles, apiResponse);
 
-        return convertApiResponseToVehicle(vehicles, apiResponse);
+
+        return new PageImpl<>(vehicleResponseList, pageable, vehicles.getTotalElements());
     }
 
     @Override
@@ -155,18 +159,18 @@ public class VehicleServiceImpl implements VehicleService {
     @Override
     public Vehicle attachVehicleToJob(Long vehicleId, Job job) {
 
-        Vehicle vehicle = vehicleRepository.getOne(vehicleId);
+        Vehicle vehicle = fetchById(vehicleId);
         job.setVehicle(vehicle);
         return vehicle;
     }
 
     @Override
-    public VehicleResponse mapVehicleToResponse(Long companyId, Vehicle vehicle) {
-        List<VehicleResponse> vehicleList = fetchVehiclesByCatalogIdList(companyId, Arrays.asList(vehicle.getCatalogId()));
+    public VehicleResponse mapVehicleToResponse(Long companyId, Vehicle vehicle, Pageable pageable) {
+        Page<VehicleResponse> vehiclePagedList = fetchVehiclesByCatalogIdList(companyId, Arrays.asList(vehicle.getCatalogId()), pageable);
 
         Optional<VehicleResponse> optionalVehicleResponse = Optional.empty();
-        if(vehicleList.size() == 1) {
-            optionalVehicleResponse = Optional.of(vehicleList.get(0));
+        if(vehiclePagedList.getSize() == 1) {
+            optionalVehicleResponse = Optional.of(vehiclePagedList.toList().get(0));
         }
         VehicleResponse vehicleResponse = optionalVehicleResponse.orElseThrow();
         vehicleResponse.setId(vehicle.getId());
@@ -177,7 +181,7 @@ public class VehicleServiceImpl implements VehicleService {
     }
 
     private List<VehicleResponse> convertApiResponseToVehicle(
-            List<Vehicle> vehicles,
+            Page<Vehicle> vehicles,
             ResponseEntity<CatalogVehicleResponse[]> apiResponse) {
 
         List<VehicleResponse> vehicleResponseList = new ArrayList<>();

@@ -1,10 +1,13 @@
 package com.webbdealer.detailing.timeclock.dao;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.webbdealer.detailing.company.dao.Company;
 import com.webbdealer.detailing.employee.dao.User;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.Objects;
@@ -23,6 +26,7 @@ public class TimeClock {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "clocked_reason_id", nullable = false)
+    @JsonBackReference
     private ClockedReason clockedReason;
 
     @Column(name = "employee_note")
@@ -34,10 +38,12 @@ public class TimeClock {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonBackReference
     private User user;
 
     @ManyToOne
     @JoinColumn(name = "company_id", nullable = false)
+    @JsonBackReference
     private Company company;
 
     public TimeClock() {}

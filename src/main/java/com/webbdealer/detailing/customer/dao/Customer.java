@@ -142,7 +142,6 @@ public class Customer extends BaseEntity implements Serializable {
                 ", business='" + business + '\'' +
                 ", notes='" + notes + '\'' +
                 ", customerType=" + customerType +
-                ", company=" + company +
                 '}';
     }
 }

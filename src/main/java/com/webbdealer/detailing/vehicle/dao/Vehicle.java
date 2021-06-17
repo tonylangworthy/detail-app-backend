@@ -97,7 +97,6 @@ public class Vehicle extends BaseEntity implements Serializable {
 				", catalogId=" + catalogId +
 				", color='" + color + '\'' +
 				", arrivalDate=" + arrivalDate +
-				", company=" + company +
 				'}';
 	}
 

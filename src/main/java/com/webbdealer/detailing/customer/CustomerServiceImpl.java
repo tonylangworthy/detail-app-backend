@@ -1,7 +1,6 @@
 package com.webbdealer.detailing.customer;
 
 import com.webbdealer.detailing.company.CompanyService;
-import com.webbdealer.detailing.company.dao.Company;
 import com.webbdealer.detailing.customer.dao.Customer;
 import com.webbdealer.detailing.customer.dao.CustomerRepository;
 import com.webbdealer.detailing.customer.dao.CustomerType;
@@ -9,6 +8,9 @@ import com.webbdealer.detailing.customer.dto.CustomerCreateForm;
 import com.webbdealer.detailing.customer.dto.CustomerResponse;
 import com.webbdealer.detailing.job.dao.Job;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -28,13 +30,19 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public Optional<Customer> fetchById(Long id) {
-        return customerRepository.findById(id);
+    public Optional<Customer> fetchById(Long companyId, Long id) {
+        return customerRepository.findByCompanyIdAndId(companyId, id);
     }
 
     @Override
-    public Customer fetchByIdReference(Long id) {
-        return customerRepository.getOne(id);
+    public Page<Customer> fetchCustomerByType(Long companyId, CustomerType type, Pageable pageable) {
+        Page<Customer> pagedCustomerList = customerRepository.findByCompanyIdAndCustomerType(companyId, type, pageable);
+        return new PageImpl<>(pagedCustomerList.toList(), pageable, pagedCustomerList.getTotalElements());
+    }
+
+    @Override
+    public Optional fetchCustomerDetails(Long companyId, Customer customer) {
+        return Optional.empty();
     }
 
     @Override
@@ -51,7 +59,8 @@ public class CustomerServiceImpl implements CustomerService {
     @Override
     public Customer attachCustomerToJob(Long customerId, Job job) {
 
-        Customer customer = customerRepository.getOne(customerId);
+        Optional<Customer> optionalCustomer = customerRepository.findById(customerId);
+        Customer customer = optionalCustomer.orElseThrow();
         job.setCustomer(customer);
         return customer;
     }

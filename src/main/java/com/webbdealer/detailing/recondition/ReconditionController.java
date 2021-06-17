@@ -2,9 +2,15 @@ package com.webbdealer.detailing.recondition;
 
 import com.webbdealer.detailing.recondition.dao.Recondition;
 import com.webbdealer.detailing.recondition.dto.ReconditionCreateForm;
+import com.webbdealer.detailing.recondition.dto.ReconditionItemModel;
+import com.webbdealer.detailing.recondition.dto.ReconditionItemModelAssembler;
 import com.webbdealer.detailing.recondition.dto.ReconditionWrapper;
 import com.webbdealer.detailing.security.JwtClaim;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -21,15 +27,24 @@ public class ReconditionController {
 
     private ReconditionService reconditionService;
 
+    private ReconditionItemModelAssembler reconditionItemModelAssembler;
+
+    private PagedResourcesAssembler<Recondition> pagedResourcesAssembler;
+
     @Autowired
-    public ReconditionController(ReconditionService reconditionService) {
+    public ReconditionController(
+            ReconditionService reconditionService,
+            ReconditionItemModelAssembler reconditionItemModelAssembler,
+            PagedResourcesAssembler<Recondition> pagedResourcesAssembler) {
         this.reconditionService = reconditionService;
+        this.reconditionItemModelAssembler = reconditionItemModelAssembler;
+        this.pagedResourcesAssembler = pagedResourcesAssembler;
     }
 
     @GetMapping("")
-    @PreAuthorize("hasAuthority('WRITE_JOBS')")
+//    @PreAuthorize("hasAuthority('WRITE_JOBS')")
 //    @RolesAllowed("ROLE_DETAILER")
-    public ResponseEntity<?> listAllReconditioningServices() {
+    public PagedModel<ReconditionItemModel> listAllReconditioningServices(Pageable pageable) {
         SecurityContext context = SecurityContextHolder.getContext();
         Authentication auth = context.getAuthentication();
 
@@ -37,7 +52,8 @@ public class ReconditionController {
 
         System.out.println(userDetails.toString());
         System.out.println(auth.toString());
-        return ResponseEntity.ok(reconditionService.fetchServices(userDetails.getCompanyId()));
+        Page<Recondition> reconditionPage = reconditionService.fetchServices(userDetails.getCompanyId(), pageable);
+        return pagedResourcesAssembler.toModel(reconditionPage, reconditionItemModelAssembler);
     }
 
     @PostMapping("")

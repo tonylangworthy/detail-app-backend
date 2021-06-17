@@ -20,6 +20,7 @@ import com.webbdealer.detailing.vehicle.dto.VehicleResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 import javax.persistence.EntityNotFoundException;
@@ -322,7 +323,7 @@ public class JobServiceImpl implements JobService {
             vehicle = vehicleService.fetchOrCreateVehicleFromRequest(companyId, createJobRequest.getVehicle());
         }
         else {
-            vehicle = vehicleService.fetchByIdReference(vehicleId);
+            vehicle = vehicleService.fetchById(vehicleId);
         }
         job.setVehicle(vehicle);
 
@@ -338,14 +339,15 @@ public class JobServiceImpl implements JobService {
             customer = customerService.fetchOrCreateCustomerFromRequest(companyId, customerForm);
         }
         else {
-            customer = customerService.fetchByIdReference(customerId);
+            Optional<Customer> optionalCustomer = customerService.fetchById(companyId, customerId);
+            customer = optionalCustomer.orElseThrow(EntityNotFoundException::new);
         }
         job.setCustomer(customer);
 
         // 3. Attach services to this job
         List<Long> serviceIdsList = createJobRequest.getServiceIds();
         serviceIdsList.forEach(id -> {
-            Recondition recondition = reconditionService.fetchByIdReference(id);
+            Recondition recondition = reconditionService.fetchById(id);
             recondition.getJobs().add(job);
         });
 
@@ -386,7 +388,7 @@ public class JobServiceImpl implements JobService {
         List<Long> catalogIdList = new ArrayList<>();
         jobs.forEach(job -> catalogIdList.add(job.getVehicle().getCatalogId()));
 
-        List<VehicleResponse> vehicleResponseList = vehicleService.fetchVehiclesByCatalogIdList(companyId, catalogIdList);
+        Page<VehicleResponse> vehicleResponseList = vehicleService.fetchVehiclesByCatalogIdList(companyId, catalogIdList, null);
 
         jobs.forEach(job -> {
             Optional<VehicleResponse> vehicleResponseOptional = vehicleResponseList.stream()

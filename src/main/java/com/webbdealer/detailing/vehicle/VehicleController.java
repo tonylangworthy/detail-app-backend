@@ -1,12 +1,17 @@
 package com.webbdealer.detailing.vehicle;
 
+import com.webbdealer.detailing.customer.dao.Customer;
+import com.webbdealer.detailing.customer.dto.CustomerItemModel;
 import com.webbdealer.detailing.security.JwtClaim;
 import com.webbdealer.detailing.vehicle.dao.Vehicle;
-import com.webbdealer.detailing.vehicle.dto.VehicleCreateForm;
-import com.webbdealer.detailing.vehicle.dto.VinFormRequest;
+import com.webbdealer.detailing.vehicle.dto.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PagedResourcesAssembler;
+import org.springframework.hateoas.PagedModel;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
@@ -16,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.util.Arrays;
+import java.util.List;
 
 import javax.validation.Valid;
 
@@ -29,10 +35,20 @@ public class VehicleController {
 
     private VehicleLookupService vehicleLookupService;
 
+    private VehicleItemModelAssembler vehicleItemModelAssembler;
+
+    private PagedResourcesAssembler<VehicleResponse> pagedResourcesAssembler;
+
     @Autowired
-    public VehicleController(VehicleService vehicleService, VehicleLookupService vehicleLookupService) {
+    public VehicleController(
+            VehicleService vehicleService,
+            VehicleLookupService vehicleLookupService,
+            VehicleItemModelAssembler vehicleItemModelAssembler,
+            PagedResourcesAssembler<VehicleResponse> pagedResourcesAssembler) {
         this.vehicleService = vehicleService;
         this.vehicleLookupService = vehicleLookupService;
+        this.vehicleItemModelAssembler = vehicleItemModelAssembler;
+        this.pagedResourcesAssembler = pagedResourcesAssembler;
     }
 
 //    @GetMapping("/vin")
@@ -51,20 +67,22 @@ public class VehicleController {
 //        return ResponseEntity.ok(vehicleService.fetchVehicleResponseByVin(userDetails.getCompanyId(), vin));
 //    }
 
-    @GetMapping("")
-    public ResponseEntity<?> fetchVehicleList() {
+    @GetMapping(path = "", produces = { "application/hal+json" })
+    public PagedModel<VehicleItemModel> fetchVehicleList(Pageable pageable) {
 
         SecurityContext context = SecurityContextHolder.getContext();
         Authentication auth = context.getAuthentication();
 
         JwtClaim userDetails = (JwtClaim) auth.getPrincipal();
 
+        Page<VehicleResponse> vehicleList = vehicleService.fetchAllVehicles(userDetails.getCompanyId(), pageable);
 
-        return ResponseEntity.ok(vehicleService.fetchAllVehicles(userDetails.getCompanyId()));
+
+        return pagedResourcesAssembler.toModel(vehicleList, vehicleItemModelAssembler);
     }
 
     @PostMapping("")
-    public ResponseEntity<?> createVehicle(@RequestBody VehicleCreateForm vehicleForm) {
+    public ResponseEntity<?> storeVehicle(@RequestBody VehicleCreateForm vehicleForm) {
 
         SecurityContext context = SecurityContextHolder.getContext();
         Authentication auth = context.getAuthentication();
@@ -72,7 +90,8 @@ public class VehicleController {
         JwtClaim userDetails = (JwtClaim) auth.getPrincipal();
 
         Vehicle vehicle = vehicleService.storeVehicleFromRequest(userDetails.getCompanyId(), vehicleForm);
-        return ResponseEntity.ok(vehicle.toString());
+        logger.info("Stored vehicle: " + vehicle.toString());
+        return ResponseEntity.ok(vehicle);
     }
 
     @GetMapping("/catalog/vin/{vin}")

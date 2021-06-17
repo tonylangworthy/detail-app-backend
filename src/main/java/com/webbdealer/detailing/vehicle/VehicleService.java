@@ -4,19 +4,19 @@ import com.webbdealer.detailing.job.dao.Job;
 import com.webbdealer.detailing.vehicle.dao.Vehicle;
 import com.webbdealer.detailing.vehicle.dto.VehicleCreateForm;
 import com.webbdealer.detailing.vehicle.dto.VehicleResponse;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Optional;
 
 public interface VehicleService {
 
-    Optional<Vehicle> fetchById(Long id);
+    Vehicle fetchById(Long id);
 
-    Vehicle fetchByIdReference(Long id);
+    Page<VehicleResponse> fetchAllVehicles(Long companyId, Pageable pageable);
 
-    List<VehicleResponse> fetchAllVehicles(Long companyId);
-
-    List<VehicleResponse> fetchVehiclesByCatalogIdList(Long companyId, List<Long> catalogIds);
+    Page<VehicleResponse> fetchVehiclesByCatalogIdList(Long companyId, List<Long> catalogIds, Pageable pageable);
 
     Vehicle fetchVehicleByVin(Long companyId, String vin);
 
@@ -32,5 +32,5 @@ public interface VehicleService {
 
     Vehicle attachVehicleToJob(Long vehicleId, Job job);
 
-    VehicleResponse mapVehicleToResponse(Long companyId, Vehicle vehicle);
+    VehicleResponse mapVehicleToResponse(Long companyId, Vehicle vehicle, Pageable pageable);
 }
