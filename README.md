@@ -5,6 +5,8 @@ Easily add upcoming jobs, and in what order they have been received. Once jobs h
 the job can be started by you or any of your employees. The application will track how long 
 each job is taking, and who performed work on each job.
 
+Additional features coming soon!
+
 ## REST API Endpoints
 ### Fetch vehicle information by VIN
 **POST** /vehicles/vin
